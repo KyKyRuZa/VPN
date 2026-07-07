@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist
+dist-ssr
+*.log
+
+# OS / editor
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json

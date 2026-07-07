@@ -1,0 +1,98 @@
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/www:/var/www/html:ro
+      - frontend-dist:/var/www/frontend:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - vpn-net
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      - PORT=8080
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vpn-net
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Built static files are shared with the nginx proxy via this volume.
+      - frontend-dist:/app/dist
+    networks:
+      - vpn-net
+    restart: unless-stopped
+
+  marzban:
+    image: gozargah/marzban:v0.8.4
+    env_file:
+      - ./marzban/.env
+    volumes:
+      - ./marzban:/app
+    networks:
+      - vpn-net
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-vpn_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password}
+      POSTGRES_DB: ${DB_NAME:-vpn_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vpn_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vpn-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-data:/data
+      - ./backend/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vpn-net
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  frontend-dist:
+
+networks:
+  vpn-net:
+    driver: bridge
