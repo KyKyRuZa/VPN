@@ -17,13 +17,13 @@ type Config struct {
 	JWTSecret   string
 	// Optional PEM-encoded EC P-256 private key. When empty an ephemeral key
 	// is generated at startup (refresh tokens become invalid after restart).
-	JWTPrivateKey string
-	CORSDomain    string
-	MarzbanURL   string
-	MarzbanUser  string
-	MarzbanPass  string
+	JWTPrivateKey  string
+	CORSDomain     string
+	MarzbanURL     string
+	MarzbanUser    string
+	MarzbanPass    string
 	MarzbanInbound string
-	PublicOrigin string
+	PublicOrigin   string
 }
 
 func Load() (*Config, error) {
@@ -39,17 +39,17 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		AppEnv:      viper.GetString("app_env"),
-		Port:        viper.GetString("port"),
-		DatabaseURL: viper.GetString("database_url"),
-		RedisURL:    viper.GetString("redis_url"),
-		JWTSecret:   viper.GetString("jwt_secret"),
-		CORSDomain:  viper.GetString("cors_domain"),
-		MarzbanURL:  viper.GetString("marzban_url"),
-		MarzbanUser:  viper.GetString("marzban_admin_username"),
-		MarzbanPass:  viper.GetString("marzban_admin_password"),
+		AppEnv:         viper.GetString("app_env"),
+		Port:           viper.GetString("port"),
+		DatabaseURL:    viper.GetString("database_url"),
+		RedisURL:       viper.GetString("redis_url"),
+		JWTSecret:      viper.GetString("jwt_secret"),
+		CORSDomain:     viper.GetString("cors_domain"),
+		MarzbanURL:     viper.GetString("marzban_url"),
+		MarzbanUser:    viper.GetString("marzban_admin_username"),
+		MarzbanPass:    viper.GetString("marzban_admin_password"),
 		MarzbanInbound: viper.GetString("marzban_inbound"),
-		PublicOrigin: viper.GetString("public_origin"),
+		PublicOrigin:   viper.GetString("public_origin"),
 	}
 
 	if cfg.Port == "" {

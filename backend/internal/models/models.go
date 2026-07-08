@@ -13,13 +13,13 @@ type User struct {
 }
 
 type Session struct {
-	ID              string    `db:"id"`
-	UserID          int64     `db:"user_id"`
-	RefreshHash     string    `db:"refresh_token_hash"`
-	UserAgent       string    `db:"user_agent"`
-	IP              string    `db:"ip"`
-	ExpiresAt       time.Time `db:"expires_at"`
-	CreatedAt       time.Time `db:"created_at"`
+	ID          string    `db:"id"`
+	UserID      int64     `db:"user_id"`
+	RefreshHash string    `db:"refresh_token_hash"`
+	UserAgent   string    `db:"user_agent"`
+	IP          string    `db:"ip"`
+	ExpiresAt   time.Time `db:"expires_at"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 // PublicProfile is the safe subset of a user exposed over the API.

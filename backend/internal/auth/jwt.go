@@ -153,7 +153,7 @@ func (t *TokenService) verify(token string) (map[string]any, error) {
 	return claims, nil
 }
 
-func b64url(b []byte) string  { return base64.RawURLEncoding.EncodeToString(b) }
+func b64url(b []byte) string                { return base64.RawURLEncoding.EncodeToString(b) }
 func b64urlDecode(s string) ([]byte, error) { return base64.RawURLEncoding.DecodeString(s) }
 
 func fixedBytes(b *big.Int, n int) []byte {

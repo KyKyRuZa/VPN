@@ -27,7 +27,9 @@
   font-size: 14px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-600));
   color: #04100d;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .button-primary:active {

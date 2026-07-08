@@ -15,10 +15,10 @@ import (
 
 // MarzbanService talks to the Marzban API inside the docker network.
 type MarzbanService struct {
-	baseURL     string
-	adminUser   string
-	adminPass   string
-	inboundTag  string
+	baseURL      string
+	adminUser    string
+	adminPass    string
+	inboundTag   string
 	publicOrigin string
 
 	client *http.Client
@@ -40,7 +40,7 @@ func NewMarzbanService(baseURL, adminUser, adminPass, inboundTag, publicOrigin s
 		adminPass:    adminPass,
 		inboundTag:   inboundTag,
 		publicOrigin: strings.TrimRight(publicOrigin, "/"),
-		client: &http.Client{Timeout: 15 * time.Second},
+		client:       &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -101,11 +101,11 @@ func (s *MarzbanService) CreateUser(ctx context.Context, username string, expire
 	}
 
 	body := map[string]any{
-		"username":    username,
-		"expire":      expire,
-		"data_limit":  dataLimitGB * 1024 * 1024 * 1024,
-		"proxies":     map[string]any{"vless": []map[string]any{{"id": "", "flow": "xtls-rprx-vision"}}},
-		"inbounds":    map[string]any{s.inboundTag: []string{s.inboundTag}},
+		"username":   username,
+		"expire":     expire,
+		"data_limit": dataLimitGB * 1024 * 1024 * 1024,
+		"proxies":    map[string]any{"vless": []map[string]any{{"id": "", "flow": "xtls-rprx-vision"}}},
+		"inbounds":   map[string]any{s.inboundTag: []string{s.inboundTag}},
 	}
 	return s.do(ctx, http.MethodPost, "/api/user", tok, body, nil)
 }

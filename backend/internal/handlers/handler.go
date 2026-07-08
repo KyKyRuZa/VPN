@@ -12,10 +12,10 @@ import (
 
 // Handler holds dependencies shared by all HTTP handlers.
 type Handler struct {
-	store    *store.Store
-	jwt      *auth.TokenService
-	marzban  *services.MarzbanService
-	cfg      *config.Config
+	store   *store.Store
+	jwt     *auth.TokenService
+	marzban *services.MarzbanService
+	cfg     *config.Config
 }
 
 func NewHandler(s *store.Store, j *auth.TokenService, m *services.MarzbanService, cfg *config.Config) *Handler {

@@ -46,6 +46,9 @@ export async function updateProfile(email: string): Promise<User> {
   return data;
 }
 
-export async function changePassword(current_password: string, new_password: string): Promise<void> {
+export async function changePassword(
+  current_password: string,
+  new_password: string,
+): Promise<void> {
   await api.post("/auth/password", { current_password, new_password });
 }
