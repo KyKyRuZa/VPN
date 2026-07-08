@@ -54,6 +54,7 @@ services:
       - vpn-net
     ports:
       - "127.0.0.1:8000:8000"
+      - "8443:8443"
     restart: unless-stopped
 
   postgres:

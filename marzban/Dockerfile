@@ -3,6 +3,8 @@ FROM gozargah/marzban:v0.8.4
 USER root
 RUN pip install --no-cache-dir psycopg2-binary==2.9.9
 RUN useradd -m -u 1000 marzban
+# Marzban/Xray writes xray_config.json into /code at runtime; grant write access
+RUN chown -R marzban:marzban /code
 
 RUN python - <<'EOF'
 import pathlib
