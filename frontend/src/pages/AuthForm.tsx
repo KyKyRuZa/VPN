@@ -29,7 +29,7 @@ export default function AuthForm({ type = "login" }: { type?: "login" | "registe
       } else {
         await register(username, email, password);
       }
-      navigate("/dashboard");
+      void navigate("/dashboard");
     } catch (err) {
       setError(errorMessage(err));
     } finally {

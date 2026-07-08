@@ -12,3 +12,9 @@ dist-ssr
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# Secrets / credentials
+nginx/certs/
+
+# Marzban data
+marzban/data/

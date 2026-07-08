@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     registerAuthFail(() => setUserState(null));
-    (async () => {
+    void (async () => {
       try {
         const data = await authApi.refresh();
         applySession(data);

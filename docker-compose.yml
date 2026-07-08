@@ -44,11 +44,12 @@ services:
     restart: unless-stopped
 
   marzban:
-    image: gozargah/marzban:v0.8.4
+    build: ./marzban
+    command: ["bash", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
     env_file:
       - ./marzban/.env
     volumes:
-      - ./marzban:/app
+      - ./marzban/data:/var/lib/marzban
     networks:
       - vpn-net
     ports:
@@ -65,7 +66,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vpn_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vpn_user} -d ${DB_NAME:-vpn_db}"]
       interval: 5s
       timeout: 5s
       retries: 5

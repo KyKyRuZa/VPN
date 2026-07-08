@@ -122,7 +122,7 @@
   npm install axios react-router-dom @reduxjs/toolkit react-redux react-hook-form zod
   ```
 
-- **Прокси для API** (в режиме разработки):  
+- **Прокси для API** (в режиме разработки):
   В `vite.config.ts`:
   ```ts
   export default defineConfig({

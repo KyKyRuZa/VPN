@@ -1,7 +1,63 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+      - id: check-merge-conflict
+
   - repo: https://github.com/gitguardian/ggshield
     rev: v1.52.2
     hooks:
       - id: ggshield
         language_version: python3
         stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: Go format (gofmt)
+        entry: gofmt -w
+        language: system
+        types: [go]
+        pass_filenames: true
+        stages: [pre-commit]
+
+      - id: go-vet
+        name: Go vet
+        entry: bash -c 'cd backend && go vet ./...'
+        language: system
+        types: [go]
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: false
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: ['--failure-threshold', 'warning']
+
+  - repo: local
+    hooks:
+      - id: frontend-check
+        name: Frontend type-check & lint (Vite+)
+        entry: bash -c 'cd frontend && npm run check'
+        language: system
+        files: \.(js|ts|jsx|tsx|css|json|md)$
+        pass_filenames: false
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: go-mod-tidy
+        name: Go mod tidy
+        entry: bash -c 'cd backend && go mod tidy'
+        language: system
+        types: [go]
+        stages: [pre-push]

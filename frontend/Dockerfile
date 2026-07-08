@@ -1,6 +1,6 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 # `npm ci` runs the project's prepare script (vp config), which needs git.
-RUN apk add --no-cache git
+RUN apk add --no-cache git=2.54.0-r0
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
