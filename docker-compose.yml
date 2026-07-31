@@ -1,4 +1,5 @@
 services:
+  services:
   nginx:
     build: ./nginx
     ports:
@@ -6,10 +7,11 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
       - ./nginx/www:/var/www/html:ro
       - frontend-dist:/var/www/frontend:ro
       - ./nginx/logs:/var/log/nginx
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
     depends_on:
       - backend
       - frontend
