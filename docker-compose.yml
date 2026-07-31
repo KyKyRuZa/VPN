@@ -52,6 +52,8 @@ services:
     volumes:
       - ./marzban/data:/var/lib/marzban
       - ./marzban/xray_config.json:/code/xray_config.json:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
     networks:
       - vpn-net
     ports:
