@@ -62,47 +62,6 @@
           "tls"
         ]
       }
-    },
-    {
-      "tag": "Trojan TLS",
-      "listen": "0.0.0.0",
-      "port": 2083,
-      "protocol": "trojan",
-      "settings": {
-        "clients": [
-          {
-            "password": "cUiU/DHxRWCSuXyGspxQnQ=="
-          }
-        ]
-      },
-      "streamSettings": {
-        "network": "tcp",
-        "security": "tls",
-        "tlsSettings": {
-          "certificates": [
-            {
-              "certificateFile": "/etc/letsencrypt/live/vpvks.ru/fullchain.pem",
-              "keyFile": "/etc/letsencrypt/live/vpvks.ru/privkey.pem"
-            }
-          ],
-          "alpn": [
-            "h2",
-            "http/1.1"
-          ]
-        },
-        "sockopt": {
-          "tcpFastOpen": true,
-          "tcpNoDelay": true,
-          "tcpKeepAliveInterval": 30
-        }
-      },
-      "sniffing": {
-        "enabled": true,
-        "destOverride": [
-          "http",
-          "tls"
-        ]
-      }
     }
   ],
   "outbounds": [
