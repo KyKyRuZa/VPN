@@ -7,7 +7,8 @@
       "1.1.1.1",
       "8.8.8.8"
     ],
-    "cacheSize": 4096
+    "cacheSize": 4096,
+    "domainStrategy": "AsIs"
   },
   "inbounds": [
     {
@@ -48,11 +49,14 @@
           "privateKey": "OBGPuDLRkb0Cbae2t84LacjkcWY38TBw9umx1vKUHyk",
           "shortIds": [
             "",
-            "abc123def456"
+            "abc"
           ]
         },
         "sockopt": {
-          "tcpFastOpen": true
+          "tcpFastOpen": true,
+          "tcpNoDelay": true,
+          "tcpKeepAlive": true,
+          "tcpKeepAliveInterval": 30
         }
       },
       "sniffing": {
@@ -93,6 +97,7 @@
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
+          "tcpKeepAlive": true,
           "tcpKeepAliveInterval": 30
         }
       },
@@ -112,7 +117,8 @@
       "streamSettings": {
         "sockopt": {
           "tcpFastOpen": true,
-          "tcpCongestion": "bbr"
+          "tcpNoDelay": true,
+          "tcpKeepAlive": true
         }
       }
     },
