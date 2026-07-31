@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	issuer       = "vpnify"
+	issuer       = "nexus"
 	accessTTL    = 15 * time.Minute
 	refreshTTL   = 30 * 24 * time.Hour
 	refreshBytes = 32

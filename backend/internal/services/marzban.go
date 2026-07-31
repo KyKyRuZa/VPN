@@ -29,7 +29,7 @@ type MarzbanService struct {
 }
 
 // NewMarzbanService constructs the client. inboundTag is the Marzban inbound
-// name used when provisioning users (e.g. "VLESS Reality").
+// name used when provisioning users.
 func NewMarzbanService(baseURL, adminUser, adminPass, inboundTag, publicOrigin string) *MarzbanService {
 	if inboundTag == "" {
 		inboundTag = "VLESS Reality"

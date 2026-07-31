@@ -38,7 +38,7 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	// Provision the VPN user in Marzban first.
+	// Provision the user in Marzban first.
 	if err := h.marzban.CreateUser(ctx, body.Username, 0, 0); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user"})
 		return
