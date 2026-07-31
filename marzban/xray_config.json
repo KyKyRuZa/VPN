@@ -1,0 +1,145 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "dns": {
+    "servers": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ],
+    "cacheSize": 4096
+  },
+  "inbounds": [
+    {
+      "tag": "api",
+      "port": 62789,
+      "protocol": "dokodemo-door",
+      "listen": "127.0.0.1",
+      "settings": {
+        "address": "127.0.0.1"
+      }
+    },
+    {
+      "tag": "VLESS Reality",
+      "listen": "0.0.0.0",
+      "port": 8443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "b6ceacb3-5b5a-4e2e-b95f-9a6a485a766a",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "www.microsoft.com:443",
+          "xver": 0,
+          "serverNames": [
+            "www.microsoft.com",
+            "azure.microsoft.com",
+            "office.microsoft.com"
+          ],
+          "privateKey": "OBGPuDLRkb0Cbae2t84LacjkcWY38TBw9umx1vKUHyk",
+          "shortIds": [
+            "",
+            "abc123def456"
+          ]
+        },
+        "sockopt": {
+          "tcpFastOpen": true
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    },
+    {
+      "tag": "Trojan TLS",
+      "listen": "0.0.0.0",
+      "port": 2083,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "cUiU/DHxRWCSuXyGspxQnQ=="
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/etc/letsencrypt/live/vpvks.ru/fullchain.pem",
+              "keyFile": "/etc/letsencrypt/live/vpvks.ru/privkey.pem"
+            }
+          ],
+          "alpn": [
+            "h2",
+            "http/1.1"
+          ]
+        },
+        "sockopt": {
+          "tcpFastOpen": true,
+          "tcpNoDelay": true,
+          "tcpKeepAliveInterval": 30
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "DIRECT",
+      "streamSettings": {
+        "sockopt": {
+          "tcpFastOpen": true,
+          "tcpCongestion": "bbr"
+        }
+      }
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "BLOCK"
+    }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "outboundTag": "DIRECT",
+        "domain": [
+          "full:cp.cloudflare.com",
+          "domain:msftconnecttest.com",
+          "domain:msftncsi.com"
+        ],
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "BLOCK",
+        "type": "field"
+      }
+    ]
+  },
+  "stats": {}
+}

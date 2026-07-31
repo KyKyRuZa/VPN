@@ -50,6 +50,7 @@ services:
       - ./marzban/.env
     volumes:
       - ./marzban/data:/var/lib/marzban
+      - ./marzban/xray_config.json:/code/xray_config.json:ro
     networks:
       - vpn-net
     ports:
