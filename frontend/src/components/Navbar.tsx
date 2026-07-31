@@ -6,8 +6,8 @@ export default function Navbar() {
     <nav className={styles.nav}>
       <div className={styles.inner}>
         <Link to="/" className={styles.brand}>
-          <span className={styles.brandIcon}>V</span>
-          VPNify
+          <span className={styles.brandIcon}>●</span>
+          Nexus
         </Link>
 
         <div className={styles.links}>

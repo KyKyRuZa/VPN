@@ -3,11 +3,11 @@ import styles from "./Instructions.module.css";
 const items = [
   {
     title: "Android",
-    desc: "Скачайте v2rayNG или FoXray, добавьте ключ через «Добавить профиль».",
+    desc: "Скачайте клиентское приложение, добавьте профиль через «Добавить профиль».",
   },
-  { title: "iOS", desc: "Shadowrocket / FoXray: отсканируйте QR или импортируйте ссылку." },
-  { title: "Windows", desc: "v2rayN / NekoRay: добавьте VLESS Reality конфиг." },
-  { title: "macOS / Linux", desc: "v2rayA / Clash Verge: импортируйте подписку." },
+  { title: "iOS", desc: "Отсканируйте QR или импортируйте ссылку в приложение." },
+  { title: "Windows", desc: "Добавьте профиль через импорт конфигурации в клиентском ПО." },
+  { title: "macOS / Linux", desc: "Импортируйте подписку через клиентское приложение." },
 ];
 
 export default function Instructions() {

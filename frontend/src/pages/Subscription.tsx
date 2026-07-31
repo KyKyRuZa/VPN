@@ -43,7 +43,7 @@ export default function Subscription() {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 10 }}>Имя пользователя VPN</div>
+        <div style={{ fontWeight: 700, marginBottom: 10 }}>Имя пользователя</div>
         <div className={styles.keyBox}>{sub?.username ?? "—"}</div>
         <div className={styles.actions}>
           <Button

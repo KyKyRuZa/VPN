@@ -7,18 +7,19 @@ export default function Hero() {
     <section className={styles.hero}>
       <div className="container">
         <h1 className={styles.title}>
-          Быстрый VLESS VPN
-          <br />с <span className={styles.accent}>Reality</span>
+          Защита ваших данных
+          <br />в любой сети
         </h1>
         <p className={styles.subtitle}>
-          Стабильные подключения, без логов, низкий пинг и защита от блокировок. Начни за 2 минуты.
+          Шифрование трафика, приватность и стабильность. Безопасный доступ к вашим ресурсам из
+          любой точки.
         </p>
         <div className={styles.actions}>
           <Link to="/register">
-            <Button>Начать</Button>
+            <Button>Начать использование</Button>
           </Link>
           <Link to="/pricing">
-            <Button variant="secondary">Тарифы</Button>
+            <Button variant="secondary">Узнать тарифы</Button>
           </Link>
         </div>
       </div>

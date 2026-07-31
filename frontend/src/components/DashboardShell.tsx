@@ -15,8 +15,8 @@ export default function DashboardShell() {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <aside className={styles.sidebar}>
         <Link to="/dashboard" className={styles.brand}>
-          <span className={styles.brandIcon}>V</span>
-          VPNify
+          <span className={styles.brandIcon}>●</span>
+          Nexus
         </Link>
         {links.map((l) => (
           <NavLink

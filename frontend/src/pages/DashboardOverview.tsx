@@ -43,8 +43,8 @@ export default function DashboardOverview() {
         <div className="card">
           <div style={{ fontWeight: 700, marginBottom: 10 }}>Быстрый старт</div>
           <ol style={{ paddingLeft: 18, color: "var(--color-muted)", fontSize: 14, lineHeight: 2 }}>
-            <li>Скачайте приложение: v2rayNG / Shadowrocket / FoXray</li>
-            <li>Импортируйте ключ из раздела «Подписка»</li>
+            <li>Установите клиентское приложение на ваше устройство</li>
+            <li>Импортируйте ссылку из раздела «Подписка»</li>
             <li>Подключитесь к любому серверу</li>
           </ol>
         </div>
