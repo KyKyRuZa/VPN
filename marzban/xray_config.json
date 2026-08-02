@@ -18,7 +18,7 @@
   },
   "policy": {
     "levels": {
-      "0": { "handshake": 4, "linkuplink": 0, "linkdownlink": 0, "linkcapacity": 0 }
+      "0": { "handshake": 4 }
     },
     "system": {
       "statsOutboundDownlink": true,
@@ -34,7 +34,7 @@
     ],
     "queryStrategy": "UseIPv4",
     "cacheSize": 4096,
-    "domainStrategy": "UseIP4Clause"
+    "domainStrategy": "UseIPv4"
   },
   "inbounds": [
     {
