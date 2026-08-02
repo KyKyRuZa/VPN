@@ -4,6 +4,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "2083:2083"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/www:/var/www/html:ro
@@ -59,7 +60,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
       - "8443:8443"
-      - "2083:2083"
+      - "20830:20830"
     restart: unless-stopped
 
   postgres:
