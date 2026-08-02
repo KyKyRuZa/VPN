@@ -88,8 +88,7 @@
       "port": 2083,
       "protocol": "trojan",
       "settings": {
-        "clients": [{ "password": "cUiU/DHxRWCSuXyGspxQnQ==" }],
-        "fallbacks": [{ "dest": "127.0.0.1:80" }]
+        "clients": [{ "password": "cUiU/DHxRWCSuXyGspxQnQ==" }]
       },
       "streamSettings": {
         "network": "tcp",

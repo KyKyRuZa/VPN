@@ -1,12 +1,14 @@
 FROM gozargah/marzban:v0.8.4
 
-USER root
-RUN pip install --no-cache-dir psycopg2-binary==2.9.9
-RUN useradd -m -u 1000 marzban
-RUN mkdir -p /usr/local/bin/xray-core
-# Marzban/Xray writes xray_config.json into /code at runtime; grant write access
-RUN chown -R marzban:marzban /code
-RUN chown marzban:marzban /usr/local/bin/xray-core
+USER 0:0
+RUN pip install --no-cache-dir psycopg2-binary==2.9.9 \
+    && useradd -m -u 1000 marzban \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends curl unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R marzban:marzban /code \
+    && mkdir -p /usr/local/bin/xray-core \
+    && chown marzban:marzban /usr/local/bin/xray-core
 
 COPY entrypoint.sh /marzban/entrypoint.sh
 RUN chmod +x /marzban/entrypoint.sh
@@ -138,8 +140,8 @@ def downgrade():
     with op.batch_alter_table(table_name) as batch_op:
         batch_op.alter_column(
             column_name,
-            existing_type=temp_type,
-            type_=old_type,
+            existing_type=old_type,
+            type_=new_type,
             existing_nullable=False,
             postgresql_using=f"{column_name}::text::{enum_name}",
         )
@@ -183,4 +185,4 @@ p.write_text(s)
 print("patched marzban last_status_change migration for postgres")
 EOF
 
-USER marzban
+USER 1000:1000
