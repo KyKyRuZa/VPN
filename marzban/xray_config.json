@@ -50,9 +50,7 @@
       "port": 8443,
       "protocol": "vless",
       "settings": {
-        "clients": [
-          { "id": "b6ceacb3-5b5a-4e2e-b95f-9a6a485a766a", "flow": "xtls-rprx-vision" }
-        ],
+        "clients": [],
         "decryption": "none"
       },
       "streamSettings": {
