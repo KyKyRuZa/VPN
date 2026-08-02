@@ -12,6 +12,8 @@ COPY entrypoint.sh /marzban/entrypoint.sh
 RUN chmod +x /marzban/entrypoint.sh
 ENTRYPOINT ["/marzban/entrypoint.sh"]
 
+COPY xray_config.json /code/xray_config.json
+
 RUN python - <<'EOF'
 import pathlib
 
