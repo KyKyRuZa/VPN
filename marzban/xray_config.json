@@ -81,31 +81,6 @@
         "destOverride": ["http", "tls", "quic"],
         "routeOnly": true
       }
-    },
-    {
-      "tag": "Trojan TLS",
-      "listen": "127.0.0.1",
-      "port": 20830,
-      "protocol": "trojan",
-      "settings": {
-        "clients": [{ "password": "cUiU/DHxRWCSuXyGspxQnQ==" }]
-      },
-      "streamSettings": {
-        "network": "tcp",
-        "security": "none",
-        "sockopt": {
-          "tcpFastOpen": true,
-          "tcpNoDelay": true,
-          "tcpKeepAlive": true,
-          "tcpKeepAliveInterval": 15,
-          "tcpKeepAliveIdle": 120
-        }
-      },
-      "sniffing": {
-        "enabled": true,
-        "destOverride": ["http", "tls"],
-        "routeOnly": true
-      }
     }
   ],
   "outbounds": [
