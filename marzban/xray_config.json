@@ -27,14 +27,23 @@
   },
   "dns": {
     "servers": [
-      { "address": "1.1.1.1", "port": 853, "type": "tls" },
-      { "address": "8.8.8.8", "port": 853, "type": "tls" },
-      "77.88.8.8",
-      "80.80.80.80"
+      {
+        "address": "9.9.9.9",
+        "port": 853,
+        "type": "tls"
+      },
+      {
+        "address": "94.140.14.14",
+        "port": 853,
+        "type": "tls"
+      },
+      "1.1.1.1",
+      "8.8.8.8"
     ],
     "queryStrategy": "UseIPv4",
-    "cacheSize": 4096,
-    "domainStrategy": "UseIPv4"
+    "cacheSize": 8192,
+    "domainStrategy": "UseIPv4",
+    "timeout": 10
   },
   "inbounds": [
     {
@@ -86,7 +95,6 @@
       "protocol": "freedom",
       "tag": "DIRECT",
       "settings": {
-        "domainStrategy": "UseIPv4",
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
