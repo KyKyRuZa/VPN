@@ -84,7 +84,7 @@
     },
     {
       "tag": "Trojan TLS",
-      "listen": "0.0.0.0",
+      "listen": "127.0.0.1",
       "port": 20830,
       "protocol": "trojan",
       "settings": {
