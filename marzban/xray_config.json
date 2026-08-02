@@ -86,7 +86,6 @@
       "protocol": "freedom",
       "tag": "DIRECT",
       "settings": {
-        "domainStrategy": "UseIPv4",
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
