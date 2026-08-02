@@ -86,6 +86,7 @@
       "protocol": "freedom",
       "tag": "DIRECT",
       "settings": {
+        "domainStrategy": "UseIPv4",
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
@@ -110,6 +111,11 @@
           "domain:msftncsi.com",
           "geosite:cn"
         ],
+        "type": "field"
+      },
+      {
+        "ip": ["::/0"],
+        "outboundTag": "BLOCK",
         "type": "field"
       },
       {
