@@ -38,7 +38,6 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      # Built static files are shared with the nginx proxy via this volume.
       - frontend-dist:/app/dist
     networks:
       - vpn-net
@@ -53,6 +52,7 @@ services:
     volumes:
       - ./marzban/data:/var/lib/marzban
       - ./marzban/xray_config.json:/code/xray_config.json:ro
+      - /opt/xray-core:/usr/local/bin/xray-core:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
     networks:
@@ -61,6 +61,7 @@ services:
       - "127.0.0.1:8000:8000"
       - "8443:8443"
       - "2083:2083"
+      - "3000:3000"
     restart: unless-stopped
 
   postgres:

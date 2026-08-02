@@ -1,14 +1,40 @@
 {
   "log": {
-    "loglevel": "debug"
+    "loglevel": "info"
+  },
+  "api": {
+    "name": ["statistics"],
+    "serves": {
+      "127.0.0.1:62789": "StatisticsService"
+    }
+  },
+  "stats": {
+    "outbounds": [
+      { "tag": "DIRECT", "delivery": true }
+    ],
+    "inbounds": [
+      { "tag": "VLESS Reality", "listen": "0.0.0.0", "delivery": true }
+    ]
+  },
+  "policy": {
+    "levels": {
+      "0": { "handshake": 4, "linkuplink": 0, "linkdownlink": 0, "linkcapacity": 0 }
+    },
+    "system": {
+      "statsOutboundDownlink": true,
+      "statsOutboundUplink": true
+    }
   },
   "dns": {
     "servers": [
-      "1.1.1.1",
-      "8.8.8.8"
+      { "address": "1.1.1.1", "port": 853, "type": "tls" },
+      { "address": "8.8.8.8", "port": 853, "type": "tls" },
+      "77.88.8.8",
+      "80.80.80.80"
     ],
+    "queryStrategy": "UseIPv4",
     "cacheSize": 4096,
-    "domainStrategy": "AsIs"
+    "domainStrategy": "UseIP4Clause"
   },
   "inbounds": [
     {
@@ -16,9 +42,7 @@
       "port": 62789,
       "protocol": "dokodemo-door",
       "listen": "127.0.0.1",
-      "settings": {
-        "address": "127.0.0.1"
-      }
+      "settings": { "address": "127.0.0.1" }
     },
     {
       "tag": "VLESS Reality",
@@ -27,10 +51,7 @@
       "protocol": "vless",
       "settings": {
         "clients": [
-          {
-            "id": "b6ceacb3-5b5a-4e2e-b95f-9a6a485a766a",
-            "flow": "xtls-rprx-vision"
-          }
+          { "id": "b6ceacb3-5b5a-4e2e-b95f-9a6a485a766a", "flow": "xtls-rprx-vision" }
         ],
         "decryption": "none"
       },
@@ -41,30 +62,24 @@
           "show": false,
           "dest": "www.microsoft.com:443",
           "xver": 0,
-          "serverNames": [
-            "www.microsoft.com",
-            "azure.microsoft.com",
-            "office.microsoft.com"
-          ],
+          "serverNames": ["www.microsoft.com", "azure.microsoft.com"],
           "privateKey": "OBGPuDLRkb0Cbae2t84LacjkcWY38TBw9umx1vKUHyk",
-          "shortIds": [
-            "",
-            "abc"
-          ]
+          "publicKey": "daGDXnfX27yZ0e_ADuEMLJ3s96lMs2J3DGeBBw9XT0k",
+          "shortIds": ["abc123def456", "abcd"],
+          "minClientVer": "1.0.0"
         },
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
           "tcpKeepAlive": true,
-          "tcpKeepAliveInterval": 30
+          "tcpKeepAliveInterval": 15,
+          "tcpKeepAliveIdle": 120
         }
       },
       "sniffing": {
         "enabled": true,
-        "destOverride": [
-          "http",
-          "tls"
-        ]
+        "destOverride": ["http", "tls", "quic"],
+        "routeOnly": true
       }
     },
     {
@@ -73,40 +88,34 @@
       "port": 2083,
       "protocol": "trojan",
       "settings": {
-        "clients": [
-          {
-            "password": "cUiU/DHxRWCSuXyGspxQnQ=="
-          }
-        ]
+        "clients": [{ "password": "cUiU/DHxRWCSuXyGspxQnQ==" }],
+        "fallbacks": [{ "dest": "127.0.0.1:80" }]
       },
       "streamSettings": {
         "network": "tcp",
         "security": "tls",
         "tlsSettings": {
+          "minVersion": "1.2",
           "certificates": [
             {
               "certificateFile": "/etc/letsencrypt/live/kykyruz.cloud-ip.cc/fullchain.pem",
               "keyFile": "/etc/letsencrypt/live/kykyruz.cloud-ip.cc/privkey.pem"
             }
           ],
-          "alpn": [
-            "h2",
-            "http/1.1"
-          ]
+          "alpn": ["h2", "http/1.1"]
         },
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
           "tcpKeepAlive": true,
-          "tcpKeepAliveInterval": 30
+          "tcpKeepAliveInterval": 15,
+          "tcpKeepAliveIdle": 120
         }
       },
       "sniffing": {
         "enabled": true,
-        "destOverride": [
-          "http",
-          "tls"
-        ]
+        "destOverride": ["http", "tls"],
+        "routeOnly": true
       }
     }
   ],
@@ -114,11 +123,12 @@
     {
       "protocol": "freedom",
       "tag": "DIRECT",
-      "streamSettings": {
+      "settings": {
         "sockopt": {
           "tcpFastOpen": true,
           "tcpNoDelay": true,
-          "tcpKeepAlive": true
+          "tcpKeepAlive": true,
+          "tcpKeepAliveInterval": 30
         }
       }
     },
@@ -128,24 +138,28 @@
     }
   ],
   "routing": {
+    "domainStrategy": "IPSet",
     "rules": [
       {
         "outboundTag": "DIRECT",
         "domain": [
           "full:cp.cloudflare.com",
           "domain:msftconnecttest.com",
-          "domain:msftncsi.com"
+          "domain:msftncsi.com",
+          "geosite:cn"
         ],
         "type": "field"
       },
       {
-        "ip": [
-          "geoip:private"
-        ],
+        "ip": ["geoip:private"],
         "outboundTag": "BLOCK",
+        "type": "field"
+      },
+      {
+        "ip": ["geoip:cn"],
+        "outboundTag": "DIRECT",
         "type": "field"
       }
     ]
-  },
-  "stats": {}
+  }
 }
