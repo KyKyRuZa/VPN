@@ -43,6 +43,15 @@ services:
       - vpn-net
     restart: unless-stopped
 
+  bot:
+    build: ./bot
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN:-7500506542:AAEbwJvm_Y-mteq3cL8zMXWHSJN8yTCx3xw}
+      - WEB_APP_URL=${WEB_APP_URL:-https://kykyruz.cloud-ip.cc}
+    restart: unless-stopped
+    networks:
+      - vpn-net
+
   marzban:
     build: ./marzban
     user: root
