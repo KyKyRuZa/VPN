@@ -128,7 +128,7 @@ func (s *MarzbanService) GetSubscriptionLink(ctx context.Context, username strin
 	var out struct {
 		SubscriptionURL string `json:"subscription_url"`
 	}
-	if err := s.do(ctx, http.MethodGet, "/api/user/"+url.PathEscape(username)+"/subscription/link", tok, nil, &out); err != nil {
+	if err := s.do(ctx, http.MethodGet, "/api/user/"+url.PathEscape(username), tok, nil, &out); err != nil {
 		return "", err
 	}
 	if s.publicOrigin == "" || out.SubscriptionURL == "" {
