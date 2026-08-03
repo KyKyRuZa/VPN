@@ -3,6 +3,8 @@ package services
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +28,12 @@ type MarzbanService struct {
 	mu          sync.Mutex
 	token       string
 	tokenExpiry time.Time
+}
+
+func newUUID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 // NewMarzbanService constructs the client. inboundTag is the Marzban inbound
@@ -104,7 +112,7 @@ func (s *MarzbanService) CreateUser(ctx context.Context, username string, expire
 		"username":   username,
 		"expire":     expire,
 		"data_limit": dataLimitGB * 1024 * 1024 * 1024,
-		"proxies":    map[string]any{"vless": []map[string]any{{"id": "", "flow": "xtls-rprx-vision"}}},
+		"proxies":    map[string]any{"vless": map[string]any{"id": newUUID(), "flow": "xtls-rprx-vision"}},
 		"inbounds":   map[string]any{s.inboundTag: []string{s.inboundTag}},
 	}
 	return s.do(ctx, http.MethodPost, "/api/user", tok, body, nil)
