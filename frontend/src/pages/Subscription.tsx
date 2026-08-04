@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/Button";
+import { useAuth } from "../hooks/useAuth";
 import { getSubscription, type Subscription as Sub } from "../api/subscription";
 import styles from "./Subscription.module.css";
 
 export default function Subscription() {
+  const { user } = useAuth();
   const [sub, setSub] = useState<Sub | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<"key" | "link" | null>(null);
@@ -12,7 +14,7 @@ export default function Subscription() {
     getSubscription()
       .then(setSub)
       .catch(() => setError("Не удалось загрузить подписку"));
-  }, []);
+  }, [user?.id]);
 
   const copy = async (text: string, which: "key" | "link") => {
     try {

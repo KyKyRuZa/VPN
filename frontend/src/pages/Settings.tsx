@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "../components/Button";
 import { useAuth } from "../hooks/useAuth";
-import { updateProfile, changePassword } from "../api/auth";
+import { getProfile, updateProfile, changePassword } from "../api/auth";
 import styles from "./Settings.module.css";
 
 function errorMessage(err: unknown): string {
@@ -29,8 +29,9 @@ export default function Settings() {
     setMsg("");
     setLoading(true);
     try {
-      const u = await updateProfile(email);
-      setUser(u);
+      await updateProfile(email);
+      const fresh = await getProfile();
+      setUser(fresh);
       setMsg("Профиль сохранён");
     } catch (ex) {
       setErr(errorMessage(ex));

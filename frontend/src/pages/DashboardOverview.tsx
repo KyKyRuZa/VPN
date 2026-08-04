@@ -11,7 +11,7 @@ export default function DashboardOverview() {
     getSubscription()
       .then(setSub)
       .catch(() => setSub(null));
-  }, []);
+  }, [user?.id]);
 
   const metrics = [
     { label: "Статус", value: user?.is_active ? "Активна" : "Неактивна" },
