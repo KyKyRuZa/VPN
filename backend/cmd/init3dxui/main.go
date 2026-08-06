@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -282,7 +282,7 @@ func generateRealityKeys(ctx context.Context, client *http.Client, cookies map[s
 func randomHex(n int) string {
 	b := make([]byte, n)
 	_, _ = rand.Read(b)
-	return base64.RawURLEncoding.EncodeToString(b)[:n]
+	return hex.EncodeToString(b)[:n]
 }
 
 type cookieJar map[string]string
