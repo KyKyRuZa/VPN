@@ -59,6 +59,9 @@ func Load() (*Config, error) {
 		cfg.Port = "8080"
 	}
 	if cfg.AppEnv == "" {
+		cfg.AppEnv = os.Getenv("APP_ENV")
+	}
+	if cfg.AppEnv == "" {
 		cfg.AppEnv = "development"
 	}
 
