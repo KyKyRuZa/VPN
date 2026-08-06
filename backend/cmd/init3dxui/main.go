@@ -186,7 +186,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 		"enable": true,
 		"remark": "VLESS Reality XHTTP",
 		"listen": "",
-		"port":   443,
+		"port":   8443,
 		"protocol": "vless",
 		"expiryTime": 0,
 		"total": 0,
