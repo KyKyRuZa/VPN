@@ -62,11 +62,28 @@ func main() {
 		fmt.Println("skip: cannot list inbounds:", err)
 		return
 	}
+
+	var existingIB map[string]any
 	for _, ib := range inbounds {
 		if strings.EqualFold(ib["tag"].(string), inboundTag) {
-			fmt.Println("skip: inbound already exists")
+			existingIB = ib
+			break
+		}
+	}
+
+	if existingIB != nil {
+		port := int(existingIB["port"].(float64))
+		if port == 8443 {
+			fmt.Println("ok: inbound already correct")
 			return
 		}
+		fmt.Printf("updating inbound %d port %d -> 8443\n", int(existingIB["id"].(float64)), port)
+		if err := updateInboundPort(ctx, client, cookies, csrf, existingIB); err != nil {
+			fmt.Println("failed to update inbound:", err)
+			os.Exit(1)
+		}
+		fmt.Println("ok: inbound updated")
+		return
 	}
 
 	if err := createInbound(ctx, client, cookies, csrf, inboundTag); err != nil {
@@ -74,6 +91,33 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println("ok: inbound created")
+}
+
+func updateInboundPort(ctx context.Context, client *http.Client, cookies map[string]string, csrf string, existingIB map[string]any) error {
+	id := int(existingIB["id"].(float64))
+	existingIB["port"] = 8443
+
+	b, _ := json.Marshal(existingIB)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/update/%d", baseURL, id), bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-CSRF-Token", csrf)
+	for k, v := range cookies {
+		req.Header.Set(k, v)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("update inbound status %d: %s", resp.StatusCode, string(data))
+	}
+	return nil
 }
 
 func login(ctx context.Context, client *http.Client, username, password string) (map[string]string, string, error) {
@@ -186,7 +230,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 		"enable": true,
 		"remark": "VLESS Reality XHTTP",
 		"listen": "",
-		"port":   8443,
+		"port": 8443,
 		"protocol": "vless",
 		"expiryTime": 0,
 		"total": 0,
