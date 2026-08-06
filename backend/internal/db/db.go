@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
 	email            TEXT UNIQUE NOT NULL,
 	password_hash    TEXT NOT NULL,
 	is_active        BOOLEAN NOT NULL DEFAULT TRUE,
-	marzban_username TEXT UNIQUE,
+	panel_username TEXT UNIQUE,
 	created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

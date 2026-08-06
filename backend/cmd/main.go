@@ -49,12 +49,14 @@ func main() {
 		sugar.Fatalf("Failed to init token service: %v", err)
 	}
 
-	marzban := services.NewMarzbanService(cfg.MarzbanURL, cfg.MarzbanUser, cfg.MarzbanPass, cfg.MarzbanInbound, cfg.PublicOrigin)
+	x3dxui := services.NewX3dxuiService(cfg.X3dxuiURL, cfg.X3dxuiUser, cfg.X3dxuiPass, cfg.X3dxuiInbound, cfg.PublicOrigin)
 	st := store.New(pg)
-	h := handlers.NewHandler(st, jwtSvc, marzban, cfg)
+	h := handlers.NewHandler(st, jwtSvc, x3dxui, cfg)
 
 	if cfg.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
 	}
 	r := gin.New()
 	r.Use(gin.Recovery())

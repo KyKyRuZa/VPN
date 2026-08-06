@@ -16,5 +16,5 @@ dist-ssr
 # Secrets / credentials
 nginx/certs/
 
-# Marzban data
-marzban/data/
+# Panel data
+3dxui-data/

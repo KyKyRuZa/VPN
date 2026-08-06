@@ -55,12 +55,12 @@ func (s *Store) GetUserByID(ctx context.Context, id int64) (*models.User, error)
 
 func (s *Store) scanUser(ctx context.Context, where string, arg any) (*models.User, error) {
 	const base = `
-SELECT id, username, email, password_hash, is_active, marzban_username, created_at
+SELECT id, username, email, password_hash, is_active, panel_username, created_at
 FROM users `
 
 	u := &models.User{}
 	err := s.db.QueryRowContext(ctx, base+where, arg).Scan(
-		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.MarzbanUsername, &u.CreatedAt,
+		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.PanelUsername, &u.CreatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -71,8 +71,8 @@ FROM users `
 	return u, nil
 }
 
-func (s *Store) SetMarzbanUsername(ctx context.Context, userID int64, marzbanUsername string) error {
-	_, err := s.db.ExecContext(ctx, "UPDATE users SET marzban_username = $1 WHERE id = $2", marzbanUsername, userID)
+func (s *Store) SetPanelUsername(ctx context.Context, userID int64, panelUsername string) error {
+	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_username = $1 WHERE id = $2", panelUsername, userID)
 	return err
 }
 

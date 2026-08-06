@@ -46,6 +46,11 @@ export async function updateProfile(email: string): Promise<User> {
   return data;
 }
 
+export async function telegram(initData: string): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>("/auth/telegram", { init_data: initData });
+  return data;
+}
+
 export async function changePassword(
   current_password: string,
   new_password: string,

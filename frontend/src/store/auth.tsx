@@ -9,6 +9,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
+  telegramLogin: (initData: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
 }
@@ -37,6 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(data.user);
   }, []);
 
+  const telegramLogin = useCallback(async (initData: string) => {
+    const data = await authApi.telegram(initData);
+    applySession(data);
+    setUserState(data.user);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -54,6 +61,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         applySession(data);
         setUserState(data.user);
       } catch {
+        const tgData = typeof window !== "undefined" ? (window as any).Telegram?.WebApp?.initData : null;
+        if (tgData) {
+          try {
+            const data = await authApi.telegram(tgData);
+            applySession(data);
+            setUserState(data.user);
+            return;
+          } catch {
+            // ignore telegram auth failure and fall through to unauthenticated state
+          }
+        }
         setUserState(null);
       } finally {
         setLoading(false);
@@ -69,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         register,
+        telegramLogin,
         logout,
         setUser,
       }}

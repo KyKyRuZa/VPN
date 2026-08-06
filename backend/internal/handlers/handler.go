@@ -14,12 +14,12 @@ import (
 type Handler struct {
 	store   *store.Store
 	jwt     *auth.TokenService
-	marzban *services.MarzbanService
+	x3dxui     *services.X3dxuiService
 	cfg     *config.Config
 }
 
-func NewHandler(s *store.Store, j *auth.TokenService, m *services.MarzbanService, cfg *config.Config) *Handler {
-	return &Handler{store: s, jwt: j, marzban: m, cfg: cfg}
+func NewHandler(s *store.Store, j *auth.TokenService, x *services.X3dxuiService, cfg *config.Config) *Handler {
+	return &Handler{store: s, jwt: j, x3dxui: x, cfg: cfg}
 }
 
 // RegisterRoutes wires all application routes onto the engine.
@@ -31,13 +31,14 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", h.register)
-			auth.POST("/login", h.login)
-			auth.POST("/refresh", h.refresh)
-			auth.POST("/logout", h.logout)
-			auth.GET("/profile", middleware.AuthRequired(h.jwt), h.profile)
-			auth.PATCH("/profile", middleware.AuthRequired(h.jwt), h.updateProfile)
-			auth.POST("/password", middleware.AuthRequired(h.jwt), h.changePassword)
+		auth.POST("/register", h.register)
+		auth.POST("/login", h.login)
+		auth.POST("/refresh", h.refresh)
+		auth.POST("/logout", h.logout)
+		auth.POST("/telegram", h.telegram)
+		auth.GET("/profile", middleware.AuthRequired(h.jwt), h.profile)
+		auth.PATCH("/profile", middleware.AuthRequired(h.jwt), h.updateProfile)
+		auth.POST("/password", middleware.AuthRequired(h.jwt), h.changePassword)
 		}
 
 		api.GET("/subscription", middleware.AuthRequired(h.jwt), h.subscription)

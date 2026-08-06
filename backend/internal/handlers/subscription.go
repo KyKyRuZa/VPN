@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,12 +19,15 @@ func (h *Handler) subscription(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
-	if user.MarzbanUsername == "" {
+	if user.PanelUsername == "" {
 		c.JSON(http.StatusConflict, gin.H{"error": "vpn not provisioned"})
 		return
 	}
 
-	link, err := h.marzban.GetSubscriptionLink(c.Request.Context(), user.MarzbanUsername)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 12*time.Second)
+	defer cancel()
+
+	link, err := h.x3dxui.GetSubscriptionLink(ctx, user.PanelUsername)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to load subscription"})
 		return
@@ -30,6 +35,6 @@ func (h *Handler) subscription(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"subscription_url": link,
-		"username":         user.MarzbanUsername,
+		"username":         user.PanelUsername,
 	})
 }

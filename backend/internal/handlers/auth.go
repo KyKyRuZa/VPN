@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,9 +39,10 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	// Provision the user in Marzban first.
-	if err := h.marzban.CreateUser(ctx, body.Username, 0, 0); err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user"})
+	// Provision the user in the panel first.
+	if err := h.x3dxui.CreateUser(ctx, body.Username, 0, 0); err != nil {
+		fmt.Printf("DEBUG: failed to provision vpn user: %v\n", err)
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user: " + err.Error()})
 		return
 	}
 
@@ -54,7 +56,7 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	if err := h.store.SetMarzbanUsername(ctx, user.ID, body.Username); err != nil {
+	if err := h.store.SetPanelUsername(ctx, user.ID, body.Username); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -233,6 +235,50 @@ func (h *Handler) issueSession(c *gin.Context, user *models.User) {
 		"access_token": access,
 		"user":         user.Public(),
 	})
+}
+
+func (h *Handler) telegram(c *gin.Context) {
+	var body struct {
+		InitData string `json:"init_data"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.InitData == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	userID, username, err := auth.ValidateTelegramInitData(body.InitData, h.cfg.BotToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid telegram data"})
+		return
+	}
+	if username == "" {
+		username = fmt.Sprintf("tg_%d", userID)
+	}
+
+	ctx := c.Request.Context()
+	user, err := h.store.GetUserByUsername(ctx, username)
+	if errors.Is(err, store.ErrNotFound) {
+		_, hash := auth.NewRefreshToken()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		user, err = h.store.CreateUser(ctx, username, "", hash)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if err := h.store.SetPanelUsername(ctx, user.ID, username); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if err := h.x3dxui.CreateUser(ctx, username, 0, 0); err != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user"})
+			return
+		}
+	}
+
+	h.issueSession(c, user)
 }
 
 func validateCredentials(username, email, password string) error {

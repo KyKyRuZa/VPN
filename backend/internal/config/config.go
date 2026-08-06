@@ -15,15 +15,14 @@ type Config struct {
 	DatabaseURL string
 	RedisURL    string
 	JWTSecret   string
-	// Optional PEM-encoded EC P-256 private key. When empty an ephemeral key
-	// is generated at startup (refresh tokens become invalid after restart).
 	JWTPrivateKey  string
 	CORSDomain     string
-	MarzbanURL     string
-	MarzbanUser    string
-	MarzbanPass    string
-	MarzbanInbound string
+	X3dxuiURL         string
+	X3dxuiUser        string
+	X3dxuiPass        string
+	X3dxuiInbound     string
 	PublicOrigin   string
+	BotToken      string
 }
 
 func Load() (*Config, error) {
@@ -45,11 +44,12 @@ func Load() (*Config, error) {
 		RedisURL:       viper.GetString("redis_url"),
 		JWTSecret:      viper.GetString("jwt_secret"),
 		CORSDomain:     viper.GetString("cors_domain"),
-		MarzbanURL:     viper.GetString("marzban_url"),
-		MarzbanUser:    viper.GetString("marzban_admin_username"),
-		MarzbanPass:    viper.GetString("marzban_admin_password"),
-		MarzbanInbound: viper.GetString("marzban_inbound"),
+		X3dxuiURL:         viper.GetString("x3dxui_url"),
+		X3dxuiUser:        viper.GetString("x3dxui_admin_username"),
+		X3dxuiPass:        viper.GetString("x3dxui_admin_password"),
+		X3dxuiInbound:     viper.GetString("x3dxui_inbound"),
 		PublicOrigin:   viper.GetString("public_origin"),
+		BotToken: viper.GetString("bot_token"),
 	}
 
 	if cfg.Port == "" {
@@ -72,14 +72,17 @@ func Load() (*Config, error) {
 	if cfg.JWTSecret == "" {
 		missing = append(missing, "JWT_SECRET")
 	}
-	if cfg.MarzbanURL == "" {
-		missing = append(missing, "MARZBAN_URL")
+	if cfg.X3dxuiURL == "" {
+		missing = append(missing, "3DXUI_URL")
 	}
-	if cfg.MarzbanUser == "" {
-		missing = append(missing, "MARZBAN_ADMIN_USERNAME")
+	if cfg.X3dxuiUser == "" {
+		missing = append(missing, "3DXUI_ADMIN_USERNAME")
 	}
-	if cfg.MarzbanPass == "" {
-		missing = append(missing, "MARZBAN_ADMIN_PASSWORD")
+	if cfg.X3dxuiPass == "" {
+		missing = append(missing, "X3DXUI_ADMIN_PASSWORD")
+	}
+	if cfg.BotToken == "" {
+		missing = append(missing, "BOT_TOKEN")
 	}
 	if len(missing) > 0 {
 		return nil, fmt.Errorf("missing required config: %s", strings.Join(missing, ", "))
