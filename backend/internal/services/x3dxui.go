@@ -266,7 +266,7 @@ func (s *X3dxuiService) getInboundID(ctx context.Context) (int, error) {
 			Tag   string `json:"tag"`
 		} `json:"obj"`
 	}
-	if err := s.do(ctx, http.MethodGet, "/panel/panel/api/inbounds/list", nil, &out); err != nil {
+	if err := s.do(ctx, http.MethodGet, "/api/inbounds/list", nil, &out); err != nil {
 		return 0, err
 	}
 
@@ -299,7 +299,7 @@ func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire 
 		},
 		"inboundIds": []int{inboundID},
 	}
-	return s.do(ctx, http.MethodPost, "/panel/panel/api/clients/add", body, nil)
+	return s.do(ctx, http.MethodPost, "/api/clients/add", body, nil)
 }
 
 // GetSubscriptionLink returns the user's subscription URL.
@@ -311,7 +311,7 @@ func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string
 			} `json:"client"`
 		} `json:"obj"`
 	}
-	if err := s.do(ctx, http.MethodGet, "/panel/panel/api/clients/get/"+url.PathEscape(username), nil, &clientOut); err != nil {
+	if err := s.do(ctx, http.MethodGet, "/api/clients/get/"+url.PathEscape(username), nil, &clientOut); err != nil {
 		return "", err
 	}
 
@@ -323,7 +323,7 @@ func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string
 	var linksOut struct {
 		Obj []string `json:"obj"`
 	}
-	if err := s.do(ctx, http.MethodGet, "/panel/panel/api/clients/subLinks/"+url.PathEscape(subId), nil, &linksOut); err != nil {
+	if err := s.do(ctx, http.MethodGet, "/api/clients/subLinks/"+url.PathEscape(subId), nil, &linksOut); err != nil {
 		return "", err
 	}
 
