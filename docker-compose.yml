@@ -19,7 +19,7 @@ services:
       - vpn-net
     restart: unless-stopped
 
-   backend:
+  backend:
     build: ./backend
     environment:
       - PORT=8080
