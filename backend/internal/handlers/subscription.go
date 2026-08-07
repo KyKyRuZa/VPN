@@ -19,7 +19,7 @@ func (h *Handler) subscription(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
-	if user.PanelUsername == "" {
+	if !user.PanelUsername.Valid {
 		c.JSON(http.StatusConflict, gin.H{"error": "vpn not provisioned"})
 		return
 	}
@@ -27,7 +27,7 @@ func (h *Handler) subscription(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 12*time.Second)
 	defer cancel()
 
-	link, err := h.x3dxui.GetSubscriptionLink(ctx, user.PanelUsername)
+	link, err := h.x3dxui.GetSubscriptionLink(ctx, user.PanelUsername.String)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to load subscription"})
 		return
@@ -35,6 +35,6 @@ func (h *Handler) subscription(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"subscription_url": link,
-		"username":         user.PanelUsername,
+		"username":         user.PanelUsername.String,
 	})
 }
