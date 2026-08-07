@@ -320,26 +320,8 @@ func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string
 		return "", fmt.Errorf("subscription id not found for %s", username)
 	}
 
-	var linksOut struct {
-		Obj []string `json:"obj"`
+	if s.publicOrigin != "" {
+		return fmt.Sprintf("%s/sub/%s", s.publicOrigin, subId), nil
 	}
-	if err := s.do(ctx, http.MethodGet, "/panel/api/clients/subLinks/"+url.PathEscape(subId), nil, &linksOut); err != nil {
-		return "", err
-	}
-
-	if len(linksOut.Obj) > 0 {
-		link := linksOut.Obj[0]
-		if s.publicOrigin != "" {
-			u, err := url.Parse(link)
-			if err == nil {
-				return s.publicOrigin + u.Path, nil
-			}
-		}
-		return link, nil
-	}
-
-	if s.publicOrigin == "" {
-		return "", fmt.Errorf("subscription link not found for %s", username)
-	}
-	return fmt.Sprintf("%s/sub/%s", s.publicOrigin, subId), nil
+	return fmt.Sprintf("/sub/%s", subId), nil
 }
