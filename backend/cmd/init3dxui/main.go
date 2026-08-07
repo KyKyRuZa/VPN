@@ -31,6 +31,7 @@ func main() {
 	if inboundTag == "" {
 		inboundTag = "vless-reality-xhttp"
 	}
+	publicHost := os.Getenv("X3DXUI_PUBLIC_HOST")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -78,7 +79,7 @@ func main() {
 			return
 		}
 		fmt.Printf("updating inbound %d port %d -> 8443\n", int(existingIB["id"].(float64)), port)
-		if err := updateInboundPort(ctx, client, cookies, csrf, existingIB); err != nil {
+		if err := updateInboundSettings(ctx, client, cookies, csrf, existingIB, publicHost); err != nil {
 			fmt.Println("failed to update inbound:", err)
 			os.Exit(1)
 		}
@@ -86,16 +87,140 @@ func main() {
 		return
 	}
 
-	if err := createInbound(ctx, client, cookies, csrf, inboundTag); err != nil {
+	if err := createInbound(ctx, client, cookies, csrf, inboundTag, publicHost); err != nil {
 		fmt.Println("failed to create inbound:", err)
 		os.Exit(1)
 	}
 	fmt.Println("ok: inbound created")
 }
 
-func updateInboundPort(ctx context.Context, client *http.Client, cookies map[string]string, csrf string, existingIB map[string]any) error {
+func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[string]any {
+	rs := map[string]any{
+		"dest":        "www.microsoft.com:443",
+		"serverNames": []string{"www.microsoft.com"},
+		"show":        false,
+		"settings":    map[string]any{},
+	}
+	if privateKey != "" && publicKey != "" {
+		rs["privateKey"] = privateKey
+		rs["publicKey"] = publicKey
+	}
+	if shortID != "" {
+		rs["shortIds"] = []string{shortID}
+	}
+
+	xs := map[string]any{
+		"mode":               "packet-up",
+		"xPaddingBytes":      "100-1000",
+		"xPaddingObfsMode":   true,
+		"scMaxEachPostBytes": 1000000,
+		"scMaxBufferedPosts": 30,
+	}
+	if publicHost != "" {
+		xs["host"] = publicHost
+	}
+
+	return map[string]any{
+		"network":         "xhttp",
+		"security":        "reality",
+		"realitySettings": rs,
+		"xhttpSettings":   xs,
+		"sockopt": map[string]any{
+			"tcpFastOpen":   true,
+			"tcpcongestion": "bbr",
+		},
+	}
+}
+
+func updateInboundSettings(ctx context.Context, client *http.Client, cookies map[string]string, csrf string, existingIB map[string]any, publicHost string) error {
 	id := int(existingIB["id"].(float64))
 	existingIB["port"] = 8443
+
+	streamSettings := existingIB["streamSettings"]
+	if ss, ok := streamSettings.(map[string]any); ok {
+		ss["network"] = "xhttp"
+		ss["security"] = "reality"
+
+		realitySettings := ss["realitySettings"]
+		if rs, ok := realitySettings.(map[string]any); ok {
+			if _, hasPrivate := rs["privateKey"].(string); !hasPrivate {
+				privateKey, publicKey, err := generateRealityKeys(ctx, client, cookies, csrf)
+				if err != nil {
+					return err
+				}
+				rs["privateKey"] = privateKey
+				rs["publicKey"] = publicKey
+				if _, hasShort := rs["shortIds"].([]any); !hasShort {
+					rs["shortIds"] = []string{randomHex(8)}
+				}
+			}
+			rs["dest"] = "www.microsoft.com:443"
+			rs["serverNames"] = []string{"www.microsoft.com"}
+			rs["show"] = false
+		} else {
+			privateKey, publicKey, err := generateRealityKeys(ctx, client, cookies, csrf)
+			if err != nil {
+				return err
+			}
+			shortID := randomHex(8)
+			ss["realitySettings"] = map[string]any{
+				"dest":        "www.microsoft.com:443",
+				"serverNames": []string{"www.microsoft.com"},
+				"show":        false,
+				"settings":    map[string]any{},
+				"privateKey":  privateKey,
+				"publicKey":   publicKey,
+				"shortIds":    []string{shortID},
+			}
+		}
+
+		xhttpSettings := ss["xhttpSettings"]
+		if xs, ok := xhttpSettings.(map[string]any); ok {
+			xs["mode"] = "packet-up"
+			xs["xPaddingBytes"] = "100-1000"
+			xs["xPaddingObfsMode"] = true
+			xs["scMaxEachPostBytes"] = 1000000
+			xs["scMaxBufferedPosts"] = 30
+			if publicHost != "" {
+				xs["host"] = publicHost
+			}
+		} else {
+			xs := map[string]any{
+				"mode":               "packet-up",
+				"xPaddingBytes":      "100-1000",
+				"xPaddingObfsMode":   true,
+				"scMaxEachPostBytes": 1000000,
+				"scMaxBufferedPosts": 30,
+			}
+			if publicHost != "" {
+				xs["host"] = publicHost
+			}
+			ss["xhttpSettings"] = xs
+		}
+
+		sockopt := ss["sockopt"]
+		if so, ok := sockopt.(map[string]any); ok {
+			so["tcpFastOpen"] = true
+			so["tcpcongestion"] = "bbr"
+		} else {
+			ss["sockopt"] = map[string]any{
+				"tcpFastOpen":   true,
+				"tcpcongestion": "bbr",
+			}
+		}
+	} else {
+		privateKey, publicKey, err := generateRealityKeys(ctx, client, cookies, csrf)
+		if err != nil {
+			return err
+		}
+		shortID := randomHex(8)
+		existingIB["streamSettings"] = buildStreamSettings(publicHost, privateKey, publicKey, shortID)
+	}
+
+	existingIB["sniffing"] = map[string]any{
+		"enabled":      true,
+		"destOverride": []string{"http", "tls"},
+	}
 
 	b, _ := json.Marshal(existingIB)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/update/%d", baseURL, id), bytes.NewReader(b))
@@ -219,7 +344,7 @@ func listInbounds(ctx context.Context, client *http.Client, cookies map[string]s
 	return out.Obj, nil
 }
 
-func createInbound(ctx context.Context, client *http.Client, cookies map[string]string, csrf, inboundTag string) error {
+func createInbound(ctx context.Context, client *http.Client, cookies map[string]string, csrf, inboundTag, publicHost string) error {
 	privateKey, publicKey, err := generateRealityKeys(ctx, client, cookies, csrf)
 	if err != nil {
 		return err
@@ -227,44 +352,22 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 	shortID := randomHex(8)
 
 	payload := map[string]any{
-		"enable": true,
-		"remark": "VLESS Reality XHTTP",
-		"listen": "",
-		"port": 8443,
-		"protocol": "vless",
+		"enable":     true,
+		"remark":     "VLESS Reality XHTTP",
+		"listen":     "",
+		"port":       8443,
+		"protocol":   "vless",
 		"expiryTime": 0,
-		"total": 0,
+		"total":      0,
 		"settings": map[string]any{
 			"clients":    []map[string]any{},
 			"decryption": "none",
 			"fallbacks":  []map[string]any{},
 			"flow":       "xtls-rprx-vision",
 		},
-		"streamSettings": map[string]any{
-			"network": "xhttp",
-			"security": "reality",
-			"realitySettings": map[string]any{
-				"show": false,
-				"dest": "www.microsoft.com:443",
-				"serverNames": []string{"www.microsoft.com"},
-				"privateKey": privateKey,
-				"publicKey":  publicKey,
-				"shortIds":   []string{shortID},
-			},
-			"xhttpSettings": map[string]any{
-				"mode": "packet-up",
-				"xPaddingBytes": "100-1000",
-				"xPaddingObfsMode": true,
-				"scMaxEachPostBytes": 1000000,
-				"scMaxBufferedPosts": 30,
-			},
-			"sockopt": map[string]any{
-				"tcpFastOpen": true,
-				"tcpcongestion": "bbr",
-			},
-		},
+		"streamSettings": buildStreamSettings(publicHost, privateKey, publicKey, shortID),
 		"sniffing": map[string]any{
-			"enabled": true,
+			"enabled":      true,
 			"destOverride": []string{"http", "tls"},
 		},
 		"tag": inboundTag,

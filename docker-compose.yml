@@ -60,6 +60,7 @@ services:
       X3DXUI_ADMIN_PASSWORD: ${X3DXUI_ADMIN_PASSWORD:-change_me}
       X3DXUI_URL: http://3dxui:80/panel
       X3DXUI_INBOUND: ${X3DXUI_INBOUND:-vless-reality-xhttp}
+      X3DXUI_PUBLIC_HOST: ${X3DXUI_PUBLIC_HOST:-kykyruz.cloud-ip.cc}
     networks:
       - vpn-net
     restart: "no"
