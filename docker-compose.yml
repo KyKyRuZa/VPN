@@ -12,12 +12,21 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
     depends_on:
-      - backend
-      - frontend
-      - 3dxui
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      3dxui:
+        condition: service_healthy
     networks:
       - vpn-net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   backend:
     build: ./backend
@@ -36,6 +45,12 @@ services:
       - vpn-net
     restart: unless-stopped
     user: "1000:1000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build: ./frontend
@@ -46,6 +61,12 @@ services:
     networks:
       - vpn-net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app/dist && test -f /app/dist/index.html || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   init-3dxui:
     build:
@@ -74,6 +95,12 @@ services:
     networks:
       - vpn-net
     user: "1000:1000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import os; os.kill(1, 0)' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   3dxui:
     image: hsanaeii/3x-ui:latest
