@@ -73,12 +73,7 @@ func main() {
 	}
 
 	if existingIB != nil {
-		port := int(existingIB["port"].(float64))
-		if port == 8443 {
-			fmt.Println("ok: inbound already correct")
-			return
-		}
-		fmt.Printf("updating inbound %d port %d -> 8443\n", int(existingIB["id"].(float64)), port)
+		fmt.Printf("updating inbound %d to ensure correct settings\n", int(existingIB["id"].(float64)))
 		if err := updateInboundSettings(ctx, client, cookies, csrf, existingIB, publicHost); err != nil {
 			fmt.Println("failed to update inbound:", err)
 			os.Exit(1)

@@ -3,13 +3,14 @@ package models
 import "time"
 
 type User struct {
-	ID              int64     `json:"id" db:"id"`
-	Username        string    `json:"username" db:"username"`
-	Email           string    `json:"email" db:"email"`
-	PasswordHash    string    `json:"-" db:"password_hash"`
-	IsActive        bool      `json:"is_active" db:"is_active"`
-	PanelUsername   string    `json:"-" db:"panel_username"`
-	CreatedAt       time.Time `json:"created_at" db:"created_at"`
+	ID            int64     `json:"id" db:"id"`
+	Username      string    `json:"username" db:"username"`
+	Email         string    `json:"email" db:"email"`
+	PasswordHash  string    `json:"-" db:"password_hash"`
+	IsActive      bool      `json:"is_active" db:"is_active"`
+	PanelUsername string    `json:"-" db:"panel_username"`
+	PanelUUID     string    `json:"-" db:"panel_uuid"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
 type Session struct {

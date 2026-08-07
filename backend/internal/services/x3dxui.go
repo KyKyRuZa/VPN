@@ -52,10 +52,10 @@ type X3dxuiService struct {
 
 	client *http.Client
 
-	mu          sync.Mutex
-	session     *x3dxuiSession
-	lastAuth    time.Time
-	inboundID   int
+	mu             sync.Mutex
+	session        *x3dxuiSession
+	lastAuth       time.Time
+	inboundID      int
 	inboundIDFound bool
 }
 
@@ -262,8 +262,8 @@ func (s *X3dxuiService) getInboundID(ctx context.Context) (int, error) {
 
 	var out struct {
 		Obj []struct {
-			ID    int    `json:"id"`
-			Tag   string `json:"tag"`
+			ID  int    `json:"id"`
+			Tag string `json:"tag"`
 		} `json:"obj"`
 	}
 	if err := s.do(ctx, http.MethodGet, "/panel/api/inbounds/list", nil, &out); err != nil {
@@ -283,7 +283,7 @@ func (s *X3dxuiService) getInboundID(ctx context.Context) (int, error) {
 }
 
 // CreateUser provisions a user in 3x-ui.
-func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire int64, dataLimitGB int) error {
+func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire int64, dataLimitGB int, uuid string) error {
 	inboundID, err := s.getInboundID(ctx)
 	if err != nil {
 		return err
@@ -292,6 +292,7 @@ func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire 
 	body := map[string]any{
 		"client": map[string]any{
 			"email":      username,
+			"id":         uuid,
 			"totalGB":    dataLimitGB * 1024 * 1024 * 1024,
 			"expiryTime": expire * 1000,
 			"limitIp":    0,

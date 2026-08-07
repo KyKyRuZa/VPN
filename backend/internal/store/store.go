@@ -25,12 +25,12 @@ func New(db *sql.DB) *Store { return &Store{db: db} }
 func (s *Store) CreateUser(ctx context.Context, username, email, passwordHash string) (*models.User, error) {
 	const q = `
 INSERT INTO users (username, email, password_hash)
-VALUES ($1, $2, $3)
-RETURNING id, username, email, is_active, created_at`
+	VALUES ($1, $2, $3)
+	RETURNING id, username, email, is_active, panel_username, panel_uuid, created_at`
 
 	u := &models.User{}
 	err := s.db.QueryRowContext(ctx, q, username, email, passwordHash).
-		Scan(&u.ID, &u.Username, &u.Email, &u.IsActive, &u.CreatedAt)
+		Scan(&u.ID, &u.Username, &u.Email, &u.IsActive, &u.PanelUsername, &u.PanelUUID, &u.CreatedAt)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
@@ -55,12 +55,12 @@ func (s *Store) GetUserByID(ctx context.Context, id int64) (*models.User, error)
 
 func (s *Store) scanUser(ctx context.Context, where string, arg any) (*models.User, error) {
 	const base = `
-SELECT id, username, email, password_hash, is_active, panel_username, created_at
-FROM users `
+SELECT id, username, email, password_hash, is_active, panel_username, panel_uuid, created_at
+	FROM users `
 
 	u := &models.User{}
 	err := s.db.QueryRowContext(ctx, base+where, arg).Scan(
-		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.PanelUsername, &u.CreatedAt,
+		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.PanelUsername, &u.PanelUUID, &u.CreatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -73,6 +73,11 @@ FROM users `
 
 func (s *Store) SetPanelUsername(ctx context.Context, userID int64, panelUsername string) error {
 	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_username = $1 WHERE id = $2", panelUsername, userID)
+	return err
+}
+
+func (s *Store) SetPanelUUID(ctx context.Context, userID int64, panelUUID string) error {
+	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_uuid = $1 WHERE id = $2", panelUUID, userID)
 	return err
 }
 

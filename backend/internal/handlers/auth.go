@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,11 +11,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
 	"github.com/ilyas/vpn-service/backend/internal/auth"
 	"github.com/ilyas/vpn-service/backend/internal/models"
 	"github.com/ilyas/vpn-service/backend/internal/store"
 )
+
+func newUUID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
 
 type credentials struct {
 	Username string `json:"username"`
@@ -40,7 +47,8 @@ func (h *Handler) register(c *gin.Context) {
 	}
 
 	// Provision the user in the panel first.
-	if err := h.x3dxui.CreateUser(ctx, body.Username, 0, 0); err != nil {
+	panelUUID := newUUID()
+	if err := h.x3dxui.CreateUser(ctx, body.Username, 0, 0, panelUUID); err != nil {
 		fmt.Printf("DEBUG: failed to provision vpn user: %v\n", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user: " + err.Error()})
 		return
@@ -57,6 +65,10 @@ func (h *Handler) register(c *gin.Context) {
 	}
 
 	if err := h.store.SetPanelUsername(ctx, user.ID, body.Username); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	if err := h.store.SetPanelUUID(ctx, user.ID, panelUUID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -272,7 +284,12 @@ func (h *Handler) telegram(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
-		if err := h.x3dxui.CreateUser(ctx, username, 0, 0); err != nil {
+		panelUUID := newUUID()
+		if err := h.store.SetPanelUUID(ctx, user.ID, panelUUID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if err := h.x3dxui.CreateUser(ctx, username, 0, 0, panelUUID); err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user"})
 			return
 		}
