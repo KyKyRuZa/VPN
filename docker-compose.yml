@@ -22,7 +22,7 @@ services:
       - vpn-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:80/ > /dev/null || curl -kfsSL https://localhost/ > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
     user: "1000:1000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:80/ > /dev/null || curl -kfsSL https://localhost/ > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
