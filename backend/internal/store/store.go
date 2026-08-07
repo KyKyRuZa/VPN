@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -36,7 +37,7 @@ INSERT INTO users (username, email, password_hash)
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
 			return nil, ErrConflict
 		}
-		return nil, err
+		return nil, fmt.Errorf("CreateUser db: %w", err)
 	}
 	return u, nil
 }
@@ -73,12 +74,18 @@ SELECT id, username, email, password_hash, is_active, panel_username, panel_uuid
 
 func (s *Store) SetPanelUsername(ctx context.Context, userID int64, panelUsername string) error {
 	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_username = $1 WHERE id = $2", panelUsername, userID)
-	return err
+	if err != nil {
+		return fmt.Errorf("SetPanelUsername db: %w", err)
+	}
+	return nil
 }
 
 func (s *Store) SetPanelUUID(ctx context.Context, userID int64, panelUUID string) error {
 	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_uuid = $1 WHERE id = $2", panelUUID, userID)
-	return err
+	if err != nil {
+		return fmt.Errorf("SetPanelUUID db: %w", err)
+	}
+	return nil
 }
 
 func (s *Store) UpdateEmail(ctx context.Context, userID int64, email string) error {

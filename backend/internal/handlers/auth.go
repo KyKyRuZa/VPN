@@ -31,10 +31,13 @@ type credentials struct {
 func (h *Handler) register(c *gin.Context) {
 	var body credentials
 	if err := c.ShouldBindJSON(&body); err != nil {
+		fmt.Printf("DEBUG register: bind json error: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
+	fmt.Printf("DEBUG register: start username=%s email=%s\n", body.Username, body.Email)
 	if err := validateCredentials(body.Username, body.Email, body.Password); err != nil {
+		fmt.Printf("DEBUG register: validation error: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -42,38 +45,51 @@ func (h *Handler) register(c *gin.Context) {
 	ctx := c.Request.Context()
 	hash, err := auth.HashPassword(body.Password)
 	if err != nil {
+		fmt.Printf("DEBUG register: hash password error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG register: password hashed OK\n")
 
 	// Provision the user in the panel first.
 	panelUUID := newUUID()
+	fmt.Printf("DEBUG register: generated panelUUID=%s\n", panelUUID)
 	if err := h.x3dxui.CreateUser(ctx, body.Username, 0, 0, panelUUID); err != nil {
-		fmt.Printf("DEBUG: failed to provision vpn user: %v\n", err)
+		fmt.Printf("DEBUG register: CreateUser 3dxui error: %v\n", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to provision vpn user: " + err.Error()})
 		return
 	}
+	fmt.Printf("DEBUG register: CreateUser 3dxui OK\n")
 
 	user, err := h.store.CreateUser(ctx, body.Username, body.Email, hash)
 	if errors.Is(err, store.ErrConflict) {
+		fmt.Printf("DEBUG register: conflict username/email already exists\n")
 		c.JSON(http.StatusConflict, gin.H{"error": "username or email already exists"})
 		return
 	}
 	if err != nil {
+		fmt.Printf("DEBUG register: CreateUser store error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG register: CreateUser local OK userID=%d\n", user.ID)
 
 	if err := h.store.SetPanelUsername(ctx, user.ID, body.Username); err != nil {
+		fmt.Printf("DEBUG register: SetPanelUsername error: %v userID=%d\n", err, user.ID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG register: SetPanelUsername OK\n")
 	if err := h.store.SetPanelUUID(ctx, user.ID, panelUUID); err != nil {
+		fmt.Printf("DEBUG register: SetPanelUUID error: %v userID=%d uuid=%s\n", err, user.ID, panelUUID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG register: SetPanelUUID OK\n")
 
+	fmt.Printf("DEBUG register: calling issueSession userID=%d\n", user.ID)
 	h.issueSession(c, user)
+	fmt.Printf("DEBUG register: issueSession returned\n")
 }
 
 func (h *Handler) login(c *gin.Context) {
@@ -223,6 +239,7 @@ func (h *Handler) changePassword(c *gin.Context) {
 
 // issueSession creates a DB session + refresh cookie and returns an access token.
 func (h *Handler) issueSession(c *gin.Context, user *models.User) {
+	fmt.Printf("DEBUG issueSession: start userID=%d username=%s\n", user.ID, user.Username)
 	raw, hash := auth.NewRefreshToken()
 	sess := models.Session{
 		ID:          auth.HashRefreshToken(raw),
@@ -233,16 +250,20 @@ func (h *Handler) issueSession(c *gin.Context, user *models.User) {
 		ExpiresAt:   time.Now().Add(auth.RefreshTTL()),
 	}
 	if err := h.store.CreateSession(c.Request.Context(), sess); err != nil {
+		fmt.Printf("DEBUG issueSession: CreateSession error: %v userID=%d\n", err, user.ID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG issueSession: CreateSession OK\n")
 	h.setRefreshCookie(c, raw)
 
 	access, err := h.jwt.NewAccessToken(user.ID, user.Username)
 	if err != nil {
+		fmt.Printf("DEBUG issueSession: NewAccessToken error: %v userID=%d\n", err, user.ID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
+	fmt.Printf("DEBUG issueSession: NewAccessToken OK\n")
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": access,
 		"user":         user.Public(),

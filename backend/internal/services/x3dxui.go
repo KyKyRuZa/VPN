@@ -286,7 +286,7 @@ func (s *X3dxuiService) getInboundID(ctx context.Context) (int, error) {
 func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire int64, dataLimitGB int, uuid string) error {
 	inboundID, err := s.getInboundID(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("getInboundID: %w", err)
 	}
 
 	body := map[string]any{
@@ -300,7 +300,10 @@ func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire 
 		},
 		"inboundIds": []int{inboundID},
 	}
-	return s.do(ctx, http.MethodPost, "/panel/api/clients/add", body, nil)
+	if err := s.do(ctx, http.MethodPost, "/panel/api/clients/add", body, nil); err != nil {
+		return fmt.Errorf("clients/add: %w", err)
+	}
+	return nil
 }
 
 // GetSubscriptionLink returns the user's subscription URL.
