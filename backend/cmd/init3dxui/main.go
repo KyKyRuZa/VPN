@@ -129,7 +129,7 @@ func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[
 
 func updateInboundSettings(ctx context.Context, client *http.Client, cookies map[string]string, csrf string, existingIB map[string]any, publicHost string) error {
 	id := int(existingIB["id"].(float64))
-	existingIB["port"] = 8443
+	existingIB["port"] = 8433
 
 	streamSettings := existingIB["streamSettings"]
 	if ss, ok := streamSettings.(map[string]any); ok {
@@ -350,7 +350,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 		"enable":     true,
 		"remark":     "VLESS Reality XHTTP",
 		"listen":     "",
-		"port":       8443,
+		"port":       8433,
 		"protocol":   "vless",
 		"expiryTime": 0,
 		"total":      0,
