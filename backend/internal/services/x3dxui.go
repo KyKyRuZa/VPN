@@ -447,12 +447,13 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 		"version": 1,
 		"outbounds": []map[string]any{
 			{
-				"type":        "vless",
-				"server":      host,
-				"server_port": port,
-				"uuid":        uuid,
-				"flow":        "xtls-rprx-vision",
-				"transport": map[string]any{
+			"type":        "vless",
+			"server":      host,
+			"server_port": port,
+			"uuid":        uuid,
+			"password":    uuid,
+			"flow":        "xtls-rprx-vision",
+			"transport": map[string]any{
 					"type": "xhttp",
 					"host": host,
 					"path": "/",
