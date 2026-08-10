@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -67,6 +68,20 @@ func newUUID() string {
 
 func normalizeBase64(s string) string {
 	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+
+	if decoded, err := base64.StdEncoding.DecodeString(s); err == nil && len(decoded) == 32 {
+		return base64.RawURLEncoding.EncodeToString(decoded)
+	}
+	if decoded, err := base64.RawURLEncoding.DecodeString(s); err == nil && len(decoded) == 32 {
+		return s
+	}
+	if decoded, err := hex.DecodeString(s); err == nil && len(decoded) == 32 {
+		return base64.RawURLEncoding.EncodeToString(decoded)
+	}
+
 	s = strings.ReplaceAll(s, "+", "-")
 	s = strings.ReplaceAll(s, "/", "_")
 	s = strings.TrimRight(s, "=")
@@ -384,7 +399,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&host=%s&mode=packet-up&path=&publicKey=%s&security=reality&shortId=%s&serverName=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?encryption=none&flow=xtls-rprx-vision&host=%s&mode=packet-up&path=&publicKey=%s&security=reality&shortId=%s&serverName=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
 		uuid,
 		host,
 		port,
@@ -397,4 +412,68 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	)
 
 	return link, nil
+}
+
+// BuildSingBoxConfig builds a sing-box JSON config for the given client.
+func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid string) (string, error) {
+	ib, err := s.GetInboundConfig(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	port := int(ib["port"].(float64))
+	stream := ib["streamSettings"].(map[string]any)
+	reality := stream["realitySettings"].(map[string]any)
+	publicKey := normalizeBase64(reality["publicKey"].(string))
+	serverNames := reality["serverNames"].([]any)
+	sni := serverNames[0].(string)
+	shortIds := reality["shortIds"].([]any)
+	shortID := ""
+	if len(shortIds) > 0 {
+		shortID = shortIds[0].(string)
+	}
+
+	host := s.publicOrigin
+	if host == "" {
+		host = sni
+	}
+	if strings.HasPrefix(host, "https://") {
+		host = strings.TrimPrefix(host, "https://")
+	} else if strings.HasPrefix(host, "http://") {
+		host = strings.TrimPrefix(host, "http://")
+	}
+
+	config := map[string]any{
+		"version": 1,
+		"outbounds": []map[string]any{
+			{
+				"type":        "vless",
+				"server":      host,
+				"server_port": port,
+				"uuid":        uuid,
+				"flow":        "xtls-rprx-vision",
+				"transport": map[string]any{
+					"type": "xhttp",
+					"host": host,
+					"path": "/",
+					"mode": "packet-up",
+				},
+				"tls": map[string]any{
+					"enabled":     true,
+					"server_name": sni,
+					"reality": map[string]any{
+						"public_key": publicKey,
+						"short_id":   shortID,
+					},
+				},
+			},
+		},
+	}
+
+	configJSON, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(configJSON), nil
 }
