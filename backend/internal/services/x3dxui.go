@@ -356,7 +356,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	port := int(ib["port"].(float64))
 	stream := ib["streamSettings"].(map[string]any)
 	reality := stream["realitySettings"].(map[string]any)
-	_ = reality["publicKey"].(string)
+	publicKey := reality["publicKey"].(string)
 	serverNames := reality["serverNames"].([]any)
 	sni := serverNames[0].(string)
 	shortIds := reality["shortIds"].([]any)
@@ -376,12 +376,13 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?extra=%s&host=%s&mode=packet-up&path=&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?extra=%s&host=%s&mode=packet-up&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
 		uuid,
 		host,
 		port,
 		url.QueryEscape(`{"mode":"packet-up","xPaddingBytes":"100-1000","xPaddingObfsMode":true}`),
 		host,
+		publicKey,
 		shortID,
 		sni,
 		"",
