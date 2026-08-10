@@ -43,6 +43,7 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 
 		api.GET("/subscription", middleware.AuthRequired(h.jwt), h.subscription)
 		api.GET("/subscription/config", middleware.AuthRequired(h.jwt), h.subscriptionConfig)
+		api.GET("/subscription/config/qr", middleware.AuthRequired(h.jwt), h.subscriptionConfigQR)
 	}
 }
 
