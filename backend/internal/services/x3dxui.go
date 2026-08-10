@@ -376,11 +376,10 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?extra=%s&host=%s&mode=packet-up&path=&publicKey=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?host=%s&mode=packet-up&path=&public_key=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
 		uuid,
 		host,
 		port,
-		url.QueryEscape(`{"mode":"packet-up","xPaddingBytes":"100-1000","xPaddingObfsMode":true}`),
 		host,
 		publicKey,
 		shortID,
