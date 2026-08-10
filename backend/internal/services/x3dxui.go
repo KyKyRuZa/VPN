@@ -65,6 +65,16 @@ func newUUID() string {
 	return hex.EncodeToString(b)
 }
 
+func normalizeBase64(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, "-", "+")
+	s = strings.ReplaceAll(s, "_", "/")
+	if mod := len(s) % 4; mod != 0 {
+		s += strings.Repeat("=", 4-mod)
+	}
+	return s
+}
+
 func NewX3dxuiService(baseURL, adminUser, adminPass, inboundTag, publicOrigin string) *X3dxuiService {
 	if inboundTag == "" {
 		inboundTag = "vless-reality-xhttp"
@@ -356,7 +366,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	port := int(ib["port"].(float64))
 	stream := ib["streamSettings"].(map[string]any)
 	reality := stream["realitySettings"].(map[string]any)
-	publicKey := reality["publicKey"].(string)
+	publicKey := normalizeBase64(reality["publicKey"].(string))
 	serverNames := reality["serverNames"].([]any)
 	sni := serverNames[0].(string)
 	shortIds := reality["shortIds"].([]any)
