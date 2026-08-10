@@ -369,6 +369,11 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	if host == "" {
 		host = sni
 	}
+	if strings.HasPrefix(host, "https://") {
+		host = strings.TrimPrefix(host, "https://")
+	} else if strings.HasPrefix(host, "http://") {
+		host = strings.TrimPrefix(host, "http://")
+	}
 
 	link := fmt.Sprintf(
 		"vless://%s@%s:%d?extra=%s&host=%s&mode=packet-up&path=&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
