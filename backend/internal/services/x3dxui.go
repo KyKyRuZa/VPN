@@ -329,3 +329,59 @@ func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string
 	}
 	return fmt.Sprintf("/sub/%s", subId), nil
 }
+
+// GetInboundConfig returns the first matching inbound config.
+func (s *X3dxuiService) GetInboundConfig(ctx context.Context) (map[string]any, error) {
+	var out struct {
+		Obj []map[string]any `json:"obj"`
+	}
+	if err := s.do(ctx, http.MethodGet, "/panel/api/inbounds/list", nil, &out); err != nil {
+		return nil, err
+	}
+	for _, ib := range out.Obj {
+		if strings.EqualFold(ib["tag"].(string), s.inboundTag) {
+			return ib, nil
+		}
+	}
+	return nil, fmt.Errorf("inbound %q not found", s.inboundTag)
+}
+
+// BuildVLESSConfig builds a base64 VLESS config for the given client.
+func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid string) (string, error) {
+	ib, err := s.GetInboundConfig(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	port := int(ib["port"].(float64))
+	stream := ib["streamSettings"].(map[string]any)
+	reality := stream["realitySettings"].(map[string]any)
+	_ = reality["publicKey"].(string)
+	serverNames := reality["serverNames"].([]any)
+	sni := serverNames[0].(string)
+	shortIds := reality["shortIds"].([]any)
+	shortID := ""
+	if len(shortIds) > 0 {
+		shortID = shortIds[0].(string)
+	}
+
+	host := s.publicOrigin
+	if host == "" {
+		host = sni
+	}
+
+	link := fmt.Sprintf(
+		"vless://%s@%s:%d?extra=%s&host=%s&mode=packet-up&path=&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&x_padding_bytes=100-1000#%s",
+		uuid,
+		host,
+		port,
+		url.QueryEscape(`{"mode":"packet-up","xPaddingBytes":"100-1000","xPaddingObfsMode":true}`),
+		host,
+		shortID,
+		sni,
+		"",
+		url.QueryEscape("VLESS Reality XHTTP-"+username),
+	)
+
+	return link, nil
+}
