@@ -463,10 +463,10 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 					"enabled":     true,
 					"server_name": sni,
 					"fingerprint": "chrome",
-					"reality": map[string]any{
-						"public_key": publicKey,
-						"short_id":   shortID,
-					},
+				"reality": map[string]any{
+					"pbk":        publicKey,
+					"short_id":   shortID,
+				},
 				},
 			},
 		},
