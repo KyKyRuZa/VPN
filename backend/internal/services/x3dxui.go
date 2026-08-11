@@ -399,7 +399,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&flow=xtls-rprx-vision&host=%s&mode=packet-up&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&fp=chrome&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?encryption=none&flow=xtls-rprx-vision&host=%s&mode=auto&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&fp=chrome&x_padding_bytes=100-1000#%s",
 		uuid,
 		host,
 		port,
@@ -453,21 +453,22 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 				"uuid":        uuid,
 				"password":    uuid,
 				"flow":        "xtls-rprx-vision",
-				"transport": map[string]any{
-					"type": "xhttp",
-					"host": host,
-					"path": "/",
-					"mode": "packet-up",
-				},
-				"tls": map[string]any{
-					"enabled":     true,
-					"server_name": sni,
-					"fingerprint": "chrome",
+			"transport": map[string]any{
+				"type": "xhttp",
+				"host": host,
+				"path": "/",
+				"mode": "auto",
+			},
+			"tls": map[string]any{
+				"enabled":     true,
+				"server_name": sni,
+				"fingerprint": "chrome",
 				"reality": map[string]any{
 					"public_key": publicKey,
 					"short_id":   shortID,
 				},
-				},
+			},
+			"password": uuid,
 			},
 		},
 	}
