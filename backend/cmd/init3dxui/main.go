@@ -29,7 +29,7 @@ func main() {
 	adminPass := os.Getenv("X3DXUI_ADMIN_PASSWORD")
 	inboundTag := os.Getenv("X3DXUI_INBOUND")
 	if inboundTag == "" {
-		inboundTag = "vless-reality-xhttp"
+		inboundTag = "vless-reality-grpc"
 	}
 	publicHost := os.Getenv("X3DXUI_PUBLIC_HOST")
 
@@ -105,22 +105,20 @@ func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[
 		rs["shortIds"] = []string{shortID}
 	}
 
-	xs := map[string]any{
-		"mode":               "auto",
-		"xPaddingBytes":      "100-1000",
-		"xPaddingObfsMode":   true,
-		"scMaxEachPostBytes": 1000000,
-		"scMaxBufferedPosts": 30,
+	gs := map[string]any{
+		"mode": "multi",
 	}
 	if publicHost != "" {
-		xs["host"] = publicHost
+		gs["serviceName"] = publicHost
+	} else {
+		gs["serviceName"] = "grpc"
 	}
 
 	return map[string]any{
-		"network":         "xhttp",
+		"network":         "grpc",
 		"security":        "reality",
 		"realitySettings": rs,
-		"xhttpSettings":   xs,
+		"grpcSettings":    gs,
 		"sockopt": map[string]any{
 			"tcpFastOpen":   true,
 			"tcpcongestion": "bbr",
@@ -134,7 +132,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 
 	streamSettings := existingIB["streamSettings"]
 	if ss, ok := streamSettings.(map[string]any); ok {
-		ss["network"] = "xhttp"
+		ss["network"] = "grpc"
 		ss["security"] = "reality"
 
 		realitySettings := ss["realitySettings"]
@@ -172,28 +170,24 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			}
 		}
 
-		xhttpSettings := ss["xhttpSettings"]
-		if xs, ok := xhttpSettings.(map[string]any); ok {
-			xs["mode"] = "auto"
-			xs["xPaddingBytes"] = "100-1000"
-			xs["xPaddingObfsMode"] = true
-			xs["scMaxEachPostBytes"] = 1000000
-			xs["scMaxBufferedPosts"] = 30
+		grpcSettings := ss["grpcSettings"]
+		if gs, ok := grpcSettings.(map[string]any); ok {
+			gs["mode"] = "multi"
 			if publicHost != "" {
-				xs["host"] = publicHost
+				gs["serviceName"] = publicHost
+			} else {
+				gs["serviceName"] = "grpc"
 			}
 		} else {
-			xs := map[string]any{
-				"mode":               "auto",
-				"xPaddingBytes":      "100-1000",
-				"xPaddingObfsMode":   true,
-				"scMaxEachPostBytes": 1000000,
-				"scMaxBufferedPosts": 30,
+			gs := map[string]any{
+				"mode": "multi",
 			}
 			if publicHost != "" {
-				xs["host"] = publicHost
+				gs["serviceName"] = publicHost
+			} else {
+				gs["serviceName"] = "grpc"
 			}
-			ss["xhttpSettings"] = xs
+			ss["grpcSettings"] = gs
 		}
 
 		sockopt := ss["sockopt"]
@@ -351,7 +345,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 
 	payload := map[string]any{
 		"enable":     true,
-		"remark":     "VLESS Reality XHTTP",
+		"remark":     "VLESS Reality gRPC",
 		"listen":     "",
 		"port":       8433,
 		"protocol":   "vless",
@@ -361,7 +355,6 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 			"clients":    []map[string]any{},
 			"decryption": "none",
 			"fallbacks":  []map[string]any{},
-			"flow":       "xtls-rprx-vision",
 		},
 		"streamSettings": buildStreamSettings(publicHost, privateKey, publicKey, shortID),
 		"sniffing": map[string]any{

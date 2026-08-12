@@ -90,7 +90,7 @@ func normalizeBase64(s string) string {
 
 func NewX3dxuiService(baseURL, adminUser, adminPass, inboundTag, publicOrigin string) *X3dxuiService {
 	if inboundTag == "" {
-		inboundTag = "vless-reality-xhttp"
+		inboundTag = "vless-reality-grpc"
 	}
 	return &X3dxuiService{
 		baseURL:      strings.TrimRight(baseURL, "/"),
@@ -399,7 +399,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&host=%s&mode=auto&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&fp=chrome&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?encryption=none&host=%s&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=grpc&fp=chrome&mode=gun#%s",
 		uuid,
 		host,
 		port,
@@ -408,7 +408,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 		shortID,
 		sni,
 		"",
-		url.QueryEscape("VLESS Reality XHTTP-"+username),
+		url.QueryEscape("VLESS Reality gRPC-"+username),
 	)
 
 	return link, nil
@@ -460,12 +460,11 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 				"server":      host,
 				"server_port": port,
 				"uuid":        uuid,
-				"transport": map[string]any{
-					"type": "xhttp",
-					"host": host,
-					"path": "/",
-					"mode": "auto",
-				},
+		"transport": map[string]any{
+			"type":         "grpc",
+			"service_name": host,
+			"mode":         "multi",
+		},
 				"tls": map[string]any{
 					"enabled":     true,
 					"server_name": sni,
@@ -488,8 +487,8 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 	return string(configJSON), nil
 }
 
-// UpdateXHTTPMode updates the XHTTP mode for the managed inbound.
-func (s *X3dxuiService) UpdateXHTTPMode(ctx context.Context, mode string) error {
+// UpdateTransportMode updates the transport mode for the managed inbound.
+func (s *X3dxuiService) UpdateTransportMode(ctx context.Context, mode string) error {
 	inboundID, err := s.getInboundID(ctx)
 	if err != nil {
 		return fmt.Errorf("getInboundID: %w", err)
@@ -502,16 +501,13 @@ func (s *X3dxuiService) UpdateXHTTPMode(ctx context.Context, mode string) error 
 
 	stream := ib["streamSettings"]
 	if ss, ok := stream.(map[string]any); ok {
-		xhttpSettings := ss["xhttpSettings"]
-		if xs, ok := xhttpSettings.(map[string]any); ok {
-			xs["mode"] = mode
+		grpcSettings := ss["grpcSettings"]
+		if gs, ok := grpcSettings.(map[string]any); ok {
+			gs["mode"] = mode
 		} else {
-			ss["xhttpSettings"] = map[string]any{
-				"mode":               mode,
-				"xPaddingBytes":      "100-1000",
-				"xPaddingObfsMode":   true,
-				"scMaxEachPostBytes": 1000000,
-				"scMaxBufferedPosts": 30,
+			ss["grpcSettings"] = map[string]any{
+				"mode":         mode,
+				"serviceName":  "grpc",
 			}
 		}
 

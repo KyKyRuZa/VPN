@@ -22,7 +22,7 @@ func (h *Handler) updateXHTTPMode(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 20*time.Second)
 	defer cancel()
 
-	if err := h.x3dxui.UpdateXHTTPMode(ctx, body.Mode); err != nil {
+	if err := h.x3dxui.UpdateTransportMode(ctx, body.Mode); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to update mode: " + err.Error()})
 		return
 	}
