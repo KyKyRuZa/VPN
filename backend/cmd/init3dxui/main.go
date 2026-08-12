@@ -29,7 +29,7 @@ func main() {
 	adminPass := os.Getenv("X3DXUI_ADMIN_PASSWORD")
 	inboundTag := os.Getenv("X3DXUI_INBOUND")
 	if inboundTag == "" {
-		inboundTag = "vless-reality-grpc"
+		inboundTag = "vless-reality-tcp"
 	}
 	publicHost := os.Getenv("X3DXUI_PUBLIC_HOST")
 
@@ -91,10 +91,12 @@ func main() {
 
 func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[string]any {
 	rs := map[string]any{
-		"dest":                  "www.microsoft.com:443",
-		"serverNames":           []string{"www.microsoft.com"},
-		"show":                  false,
-		"settings":              map[string]any{},
+		"dest":                   "www.microsoft.com:443",
+		"serverNames":            []string{"www.microsoft.com"},
+		"fingerprint":            "chrome",
+		"spx":                    "%2F",
+		"show":                   false,
+		"settings":               map[string]any{},
 		"minimal_client_version": "",
 	}
 	if privateKey != "" && publicKey != "" {
@@ -105,20 +107,10 @@ func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[
 		rs["shortIds"] = []string{shortID}
 	}
 
-	gs := map[string]any{
-		"mode": "multi",
-	}
-	if publicHost != "" {
-		gs["serviceName"] = publicHost
-	} else {
-		gs["serviceName"] = "grpc"
-	}
-
 	return map[string]any{
-		"network":         "grpc",
+		"network":         "tcp",
 		"security":        "reality",
 		"realitySettings": rs,
-		"grpcSettings":    gs,
 		"sockopt": map[string]any{
 			"tcpFastOpen":   true,
 			"tcpcongestion": "bbr",
@@ -132,7 +124,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 
 	streamSettings := existingIB["streamSettings"]
 	if ss, ok := streamSettings.(map[string]any); ok {
-		ss["network"] = "grpc"
+		ss["network"] = "tcp"
 		ss["security"] = "reality"
 
 		realitySettings := ss["realitySettings"]
@@ -150,6 +142,8 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			}
 			rs["dest"] = "www.microsoft.com:443"
 			rs["serverNames"] = []string{"www.microsoft.com"}
+			rs["fingerprint"] = "chrome"
+			rs["spx"] = "%2F"
 			rs["show"] = false
 			rs["minimal_client_version"] = ""
 		} else {
@@ -159,35 +153,17 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			}
 			shortID := randomHex(8)
 			ss["realitySettings"] = map[string]any{
-				"dest":                  "www.microsoft.com:443",
-				"serverNames":           []string{"www.microsoft.com"},
-				"show":                  false,
-				"settings":              map[string]any{},
-				"privateKey":            privateKey,
-				"publicKey":             publicKey,
-				"shortIds":              []string{shortID},
+				"dest":                   "www.microsoft.com:443",
+				"serverNames":            []string{"www.microsoft.com"},
+				"fingerprint":            "chrome",
+				"spx":                    "%2F",
+				"show":                   false,
+				"settings":               map[string]any{},
+				"privateKey":             privateKey,
+				"publicKey":              publicKey,
+				"shortIds":               []string{shortID},
 				"minimal_client_version": "",
 			}
-		}
-
-		grpcSettings := ss["grpcSettings"]
-		if gs, ok := grpcSettings.(map[string]any); ok {
-			gs["mode"] = "multi"
-			if publicHost != "" {
-				gs["serviceName"] = publicHost
-			} else {
-				gs["serviceName"] = "grpc"
-			}
-		} else {
-			gs := map[string]any{
-				"mode": "multi",
-			}
-			if publicHost != "" {
-				gs["serviceName"] = publicHost
-			} else {
-				gs["serviceName"] = "grpc"
-			}
-			ss["grpcSettings"] = gs
 		}
 
 		sockopt := ss["sockopt"]
@@ -215,7 +191,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 	}
 
 	if settings, ok := existingIB["settings"].(map[string]any); ok {
-		delete(settings, "flow")
+		settings["flow"] = "xtls-rprx-vision"
 	}
 
 	b, _ := json.Marshal(existingIB)
@@ -349,7 +325,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 
 	payload := map[string]any{
 		"enable":     true,
-		"remark":     "VLESS Reality gRPC",
+		"remark":     "VLESS Reality TCP",
 		"listen":     "",
 		"port":       8433,
 		"protocol":   "vless",
@@ -359,6 +335,7 @@ func createInbound(ctx context.Context, client *http.Client, cookies map[string]
 			"clients":    []map[string]any{},
 			"decryption": "none",
 			"fallbacks":  []map[string]any{},
+			"flow":       "xtls-rprx-vision",
 		},
 		"streamSettings": buildStreamSettings(publicHost, privateKey, publicKey, shortID),
 		"sniffing": map[string]any{

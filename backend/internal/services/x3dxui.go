@@ -90,7 +90,7 @@ func normalizeBase64(s string) string {
 
 func NewX3dxuiService(baseURL, adminUser, adminPass, inboundTag, publicOrigin string) *X3dxuiService {
 	if inboundTag == "" {
-		inboundTag = "vless-reality-grpc"
+		inboundTag = "vless-reality-tcp"
 	}
 	return &X3dxuiService{
 		baseURL:      strings.TrimRight(baseURL, "/"),
@@ -399,7 +399,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&host=%s&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=grpc&fp=chrome&mode=gun#%s",
+		"vless://%s@%s:%d?encryption=none&host=%s&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=tcp&fp=chrome&flow=xtls-rprx-vision#%s",
 		uuid,
 		host,
 		port,
@@ -407,8 +407,8 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 		publicKey,
 		shortID,
 		sni,
-		"",
-		url.QueryEscape("VLESS Reality gRPC-"+username),
+		"%2F",
+		url.QueryEscape("VLESS Reality TCP-"+username),
 	)
 
 	return link, nil
@@ -460,11 +460,9 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 				"server":      host,
 				"server_port": port,
 				"uuid":        uuid,
-		"transport": map[string]any{
-			"type":         "grpc",
-			"service_name": host,
-			"mode":         "multi",
-		},
+				"transport": map[string]any{
+					"type": "tcp",
+				},
 				"tls": map[string]any{
 					"enabled":     true,
 					"server_name": sni,
@@ -501,13 +499,19 @@ func (s *X3dxuiService) UpdateTransportMode(ctx context.Context, mode string) er
 
 	stream := ib["streamSettings"]
 	if ss, ok := stream.(map[string]any); ok {
-		grpcSettings := ss["grpcSettings"]
-		if gs, ok := grpcSettings.(map[string]any); ok {
-			gs["mode"] = mode
+		tcpSettings := ss["tcpSettings"]
+		if ts, ok := tcpSettings.(map[string]any); ok {
+			header, _ := ts["header"].(map[string]any)
+			if header == nil {
+				header = map[string]any{}
+				ts["header"] = header
+			}
+			header["type"] = mode
 		} else {
-			ss["grpcSettings"] = map[string]any{
-				"mode":         mode,
-				"serviceName":  "grpc",
+			ss["tcpSettings"] = map[string]any{
+				"header": map[string]any{
+					"type": mode,
+				},
 			}
 		}
 
