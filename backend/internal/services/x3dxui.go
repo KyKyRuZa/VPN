@@ -419,6 +419,11 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 		return "", fmt.Errorf("realitySettings missing for inbound %q", s.inboundTag)
 	}
 	pubRaw, _ := reality["publicKey"].(string)
+	if pubRaw == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			pubRaw, _ = settings["publicKey"].(string)
+		}
+	}
 	publicKey := normalizeBase64(pubRaw)
 	if publicKey == "" {
 		if privRaw, _ := reality["privateKey"].(string); privRaw != "" {
@@ -441,10 +446,25 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	if len(shortIds) > 0 {
 		shortID, _ = shortIds[0].(string)
 	}
-	spx, _ := reality["spx"].(string)
-	if spx == "" {
-		spx = "%2F"
+	fingerprint, _ := reality["fingerprint"].(string)
+	if fingerprint == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			fingerprint, _ = settings["fingerprint"].(string)
+		}
 	}
+	if fingerprint == "" {
+		fingerprint = "chrome"
+	}
+	spiderX, _ := reality["spx"].(string)
+	if spiderX == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			spiderX, _ = settings["spiderX"].(string)
+		}
+	}
+	if spiderX == "" {
+		spiderX = "/"
+	}
+	spx := url.QueryEscape(spiderX)
 
 	host := s.publicOrigin
 	if host == "" {
@@ -457,7 +477,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&host=%s&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=tcp&fp=chrome&flow=xtls-rprx-vision#%s",
+		"vless://%s@%s:%d?encryption=none&host=%s&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=tcp&fp=%s&flow=xtls-rprx-vision#%s",
 		uuid,
 		host,
 		port,
@@ -466,6 +486,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 		shortID,
 		sni,
 		spx,
+		fingerprint,
 		url.QueryEscape("VLESS Reality TCP-"+username),
 	)
 
@@ -489,6 +510,11 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 		return "", fmt.Errorf("realitySettings missing for inbound %q", s.inboundTag)
 	}
 	pubRaw, _ := reality["publicKey"].(string)
+	if pubRaw == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			pubRaw, _ = settings["publicKey"].(string)
+		}
+	}
 	publicKey := normalizeBase64(pubRaw)
 	if publicKey == "" {
 		if privRaw, _ := reality["privateKey"].(string); privRaw != "" {
@@ -511,9 +537,23 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 	if len(shortIds) > 0 {
 		shortID, _ = shortIds[0].(string)
 	}
-	spx, _ := reality["spx"].(string)
-	if spx == "" {
-		spx = "%2F"
+	fingerprint, _ := reality["fingerprint"].(string)
+	if fingerprint == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			fingerprint, _ = settings["fingerprint"].(string)
+		}
+	}
+	if fingerprint == "" {
+		fingerprint = "chrome"
+	}
+	spiderX, _ := reality["spx"].(string)
+	if spiderX == "" {
+		if settings, ok := reality["settings"].(map[string]any); ok {
+			spiderX, _ = settings["spiderX"].(string)
+		}
+	}
+	if spiderX == "" {
+		spiderX = "/"
 	}
 
 	host := s.publicOrigin
@@ -550,11 +590,11 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 				"tls": map[string]any{
 					"enabled":     true,
 					"server_name": sni,
-					"fingerprint": "chrome",
+					"fingerprint": fingerprint,
 					"reality": map[string]any{
 						"public_key": publicKey,
 						"short_id":   shortID,
-						"spx":        spx,
+						"spx":        spiderX,
 					},
 				},
 				"password": uuid,
