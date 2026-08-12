@@ -316,6 +316,8 @@ func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire 
 		"client": map[string]any{
 			"email":      username,
 			"id":         uuid,
+			"password":   uuid,
+			"flow":       "xtls-rprx-vision",
 			"totalGB":    dataLimitGB * 1024 * 1024 * 1024,
 			"expiryTime": expire * 1000,
 			"limitIp":    0,
