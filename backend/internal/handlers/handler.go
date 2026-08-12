@@ -45,6 +45,12 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 		api.GET("/subscription/config", middleware.AuthRequired(h.jwt), h.subscriptionConfig)
 		api.GET("/subscription/config/qr", middleware.AuthRequired(h.jwt), h.subscriptionConfigQR)
 		api.GET("/subscription/config/singbox", middleware.AuthRequired(h.jwt), h.subscriptionConfigSingBox)
+
+		admin := api.Group("/admin")
+		admin.Use(middleware.AdminRequired(h.cfg.AdminAPISecret))
+		{
+			admin.POST("/xhttp-mode", h.updateXHTTPMode)
+		}
 	}
 }
 

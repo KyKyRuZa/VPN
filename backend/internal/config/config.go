@@ -23,6 +23,7 @@ type Config struct {
 	X3dxuiInbound     string
 	PublicOrigin   string
 	BotToken      string
+	AdminAPISecret string
 }
 
 func Load() (*Config, error) {
@@ -50,6 +51,7 @@ func Load() (*Config, error) {
 		X3dxuiInbound:     viper.GetString("x3dxui_inbound"),
 		PublicOrigin:   viper.GetString("public_origin"),
 		BotToken: viper.GetString("bot_token"),
+		AdminAPISecret: viper.GetString("admin_api_secret"),
 	}
 
 	if cfg.Port == "" {

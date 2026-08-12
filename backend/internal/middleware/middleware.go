@@ -59,3 +59,19 @@ func AuthRequired(jwt *auth.TokenService) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// AdminRequired validates the admin shared secret from X-Admin-Secret header.
+func AdminRequired(secret string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if secret == "" {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "not configured"})
+			return
+		}
+		token := c.GetHeader("X-Admin-Secret")
+		if token == "" || token != secret {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid admin secret"})
+			return
+		}
+		c.Next()
+	}
+}
