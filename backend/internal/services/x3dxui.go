@@ -14,6 +14,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/crypto/curve25519"
 )
 
 type x3dxuiSession struct {
@@ -64,6 +66,16 @@ func newUUID() string {
 	b := make([]byte, 16)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+func derivePublicKey(privateKey string) string {
+	sk := make([]byte, curve25519.ScalarSize)
+	if _, err := hex.Decode(sk, []byte(privateKey)); err != nil {
+		return ""
+	}
+	var pk [curve25519.PointSize]byte
+	curve25519.ScalarBaseMult(&pk, (*[curve25519.ScalarSize]byte)(sk))
+	return hex.EncodeToString(pk[:])
 }
 
 func normalizeBase64(s string) string {
@@ -382,6 +394,9 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	stream := ib["streamSettings"].(map[string]any)
 	reality := stream["realitySettings"].(map[string]any)
 	publicKey := normalizeBase64(reality["publicKey"].(string))
+	if publicKey == "" {
+		publicKey = normalizeBase64(derivePublicKey(reality["privateKey"].(string)))
+	}
 	serverNames := reality["serverNames"].([]any)
 	sni := serverNames[0].(string)
 	shortIds := reality["shortIds"].([]any)
@@ -427,6 +442,9 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 	stream := ib["streamSettings"].(map[string]any)
 	reality := stream["realitySettings"].(map[string]any)
 	publicKey := normalizeBase64(reality["publicKey"].(string))
+	if publicKey == "" {
+		publicKey = normalizeBase64(derivePublicKey(reality["privateKey"].(string)))
+	}
 	serverNames := reality["serverNames"].([]any)
 	sni := serverNames[0].(string)
 	shortIds := reality["shortIds"].([]any)

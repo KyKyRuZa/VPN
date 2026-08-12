@@ -12,6 +12,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/curve25519"
 )
 
 var baseURL = "http://localhost:80/panel"
@@ -144,6 +146,8 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 				if _, hasShort := rs["shortIds"].([]any); !hasShort {
 					rs["shortIds"] = []string{randomHex(8)}
 				}
+			} else if _, hasPublic := rs["publicKey"].(string); !hasPublic {
+				rs["publicKey"] = derivePublicKey(rs["privateKey"].(string))
 			}
 			rs["dest"] = "www.microsoft.com:443"
 			rs["serverNames"] = []string{"www.microsoft.com"}
@@ -407,6 +411,16 @@ func randomHex(n int) string {
 	b := make([]byte, n)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)[:n]
+}
+
+func derivePublicKey(privateKey string) string {
+	sk := make([]byte, curve25519.ScalarSize)
+	if _, err := hex.Decode(sk, []byte(privateKey)); err != nil {
+		return ""
+	}
+	var pk [curve25519.PointSize]byte
+	curve25519.ScalarBaseMult(&pk, (*[curve25519.ScalarSize]byte)(sk))
+	return hex.EncodeToString(pk[:])
 }
 
 func patchExistingClients(ctx context.Context, client *http.Client, cookies map[string]string, csrf string) error {
