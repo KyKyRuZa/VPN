@@ -441,6 +441,10 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	if len(shortIds) > 0 {
 		shortID, _ = shortIds[0].(string)
 	}
+	spx, _ := reality["spx"].(string)
+	if spx == "" {
+		spx = "%2F"
+	}
 
 	host := s.publicOrigin
 	if host == "" {
@@ -461,7 +465,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 		publicKey,
 		shortID,
 		sni,
-		"%2F",
+		spx,
 		url.QueryEscape("VLESS Reality TCP-"+username),
 	)
 
@@ -507,6 +511,10 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 	if len(shortIds) > 0 {
 		shortID, _ = shortIds[0].(string)
 	}
+	spx, _ := reality["spx"].(string)
+	if spx == "" {
+		spx = "%2F"
+	}
 
 	host := s.publicOrigin
 	if host == "" {
@@ -535,6 +543,7 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 				"server":      host,
 				"server_port": port,
 				"uuid":        uuid,
+				"flow":        "xtls-rprx-vision",
 				"transport": map[string]any{
 					"type": "tcp",
 				},
@@ -545,6 +554,7 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 					"reality": map[string]any{
 						"public_key": publicKey,
 						"short_id":   shortID,
+						"spx":        spx,
 					},
 				},
 				"password": uuid,
