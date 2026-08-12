@@ -369,18 +369,37 @@ func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string
 
 // GetInboundConfig returns the first matching inbound config.
 func (s *X3dxuiService) GetInboundConfig(ctx context.Context) (map[string]any, error) {
-	var out struct {
-		Obj []map[string]any `json:"obj"`
+	var list struct {
+		Obj []struct {
+			ID  int    `json:"id"`
+			Tag string `json:"tag"`
+		} `json:"obj"`
 	}
-	if err := s.do(ctx, http.MethodGet, "/panel/api/inbounds/list", nil, &out); err != nil {
+	if err := s.do(ctx, http.MethodGet, "/panel/api/inbounds/list", nil, &list); err != nil {
 		return nil, err
 	}
-	for _, ib := range out.Obj {
-		if strings.EqualFold(ib["tag"].(string), s.inboundTag) {
-			return ib, nil
+
+	var targetID int
+	for _, ib := range list.Obj {
+		if strings.EqualFold(ib.Tag, s.inboundTag) {
+			targetID = ib.ID
+			break
 		}
 	}
-	return nil, fmt.Errorf("inbound %q not found", s.inboundTag)
+	if targetID == 0 {
+		return nil, fmt.Errorf("inbound %q not found", s.inboundTag)
+	}
+
+	var full struct {
+		Obj map[string]any `json:"obj"`
+	}
+	if err := s.do(ctx, http.MethodGet, fmt.Sprintf("/panel/api/inbounds/get/%d", targetID), nil, &full); err != nil {
+		return nil, err
+	}
+	if full.Obj == nil {
+		return nil, fmt.Errorf("inbound %q not found", s.inboundTag)
+	}
+	return full.Obj, nil
 }
 
 // BuildVLESSConfig builds a base64 VLESS config for the given client.
@@ -391,18 +410,36 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	port := int(ib["port"].(float64))
-	stream := ib["streamSettings"].(map[string]any)
-	reality := stream["realitySettings"].(map[string]any)
-	publicKey := normalizeBase64(reality["publicKey"].(string))
-	if publicKey == "" {
-		publicKey = normalizeBase64(derivePublicKey(reality["privateKey"].(string)))
+	stream, ok := ib["streamSettings"].(map[string]any)
+	if !ok {
+		return "", fmt.Errorf("streamSettings missing for inbound %q", s.inboundTag)
 	}
-	serverNames := reality["serverNames"].([]any)
+	reality, ok := stream["realitySettings"].(map[string]any)
+	if !ok {
+		return "", fmt.Errorf("realitySettings missing for inbound %q", s.inboundTag)
+	}
+	pubRaw, _ := reality["publicKey"].(string)
+	publicKey := normalizeBase64(pubRaw)
+	if publicKey == "" {
+		if privRaw, _ := reality["privateKey"].(string); privRaw != "" {
+			publicKey = normalizeBase64(derivePublicKey(privRaw))
+		}
+	}
+	if publicKey == "" {
+		return "", fmt.Errorf("publicKey unavailable for inbound %q", s.inboundTag)
+	}
+	serverNames, ok := reality["serverNames"].([]any)
+	if !ok || len(serverNames) == 0 {
+		return "", fmt.Errorf("serverNames missing for inbound %q", s.inboundTag)
+	}
 	sni := serverNames[0].(string)
-	shortIds := reality["shortIds"].([]any)
+	shortIds, ok := reality["shortIds"].([]any)
+	if !ok || len(shortIds) == 0 {
+		return "", fmt.Errorf("shortIds missing for inbound %q", s.inboundTag)
+	}
 	shortID := ""
 	if len(shortIds) > 0 {
-		shortID = shortIds[0].(string)
+		shortID, _ = shortIds[0].(string)
 	}
 
 	host := s.publicOrigin
@@ -439,18 +476,36 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 	}
 
 	port := int(ib["port"].(float64))
-	stream := ib["streamSettings"].(map[string]any)
-	reality := stream["realitySettings"].(map[string]any)
-	publicKey := normalizeBase64(reality["publicKey"].(string))
-	if publicKey == "" {
-		publicKey = normalizeBase64(derivePublicKey(reality["privateKey"].(string)))
+	stream, ok := ib["streamSettings"].(map[string]any)
+	if !ok {
+		return "", fmt.Errorf("streamSettings missing for inbound %q", s.inboundTag)
 	}
-	serverNames := reality["serverNames"].([]any)
+	reality, ok := stream["realitySettings"].(map[string]any)
+	if !ok {
+		return "", fmt.Errorf("realitySettings missing for inbound %q", s.inboundTag)
+	}
+	pubRaw, _ := reality["publicKey"].(string)
+	publicKey := normalizeBase64(pubRaw)
+	if publicKey == "" {
+		if privRaw, _ := reality["privateKey"].(string); privRaw != "" {
+			publicKey = normalizeBase64(derivePublicKey(privRaw))
+		}
+	}
+	if publicKey == "" {
+		return "", fmt.Errorf("publicKey unavailable for inbound %q", s.inboundTag)
+	}
+	serverNames, ok := reality["serverNames"].([]any)
+	if !ok || len(serverNames) == 0 {
+		return "", fmt.Errorf("serverNames missing for inbound %q", s.inboundTag)
+	}
 	sni := serverNames[0].(string)
-	shortIds := reality["shortIds"].([]any)
+	shortIds, ok := reality["shortIds"].([]any)
+	if !ok || len(shortIds) == 0 {
+		return "", fmt.Errorf("shortIds missing for inbound %q", s.inboundTag)
+	}
 	shortID := ""
 	if len(shortIds) > 0 {
-		shortID = shortIds[0].(string)
+		shortID, _ = shortIds[0].(string)
 	}
 
 	host := s.publicOrigin

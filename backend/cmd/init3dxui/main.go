@@ -223,6 +223,33 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("update inbound status %d: %s", resp.StatusCode, string(data))
 	}
+
+	// 3x-ui в списке инбаундов не отдаёт publicKey; убедимся, что он записан.
+	full, err := getInboundByID(ctx, client, cookies, id)
+	if err == nil {
+		if ss, ok := full["streamSettings"].(map[string]any); ok {
+			if rs, ok := ss["realitySettings"].(map[string]any); ok {
+				priv, _ := rs["privateKey"].(string)
+				pub, _ := rs["publicKey"].(string)
+				if priv != "" && pub == "" {
+					rs["publicKey"] = derivePublicKey(priv)
+					full["id"] = id
+					if b, err := json.Marshal(full); err == nil {
+						req2, _ := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/update/%d", baseURL, id), bytes.NewReader(b))
+						req2.Header.Set("Content-Type", "application/json")
+						req2.Header.Set("X-CSRF-Token", csrf)
+						for k, v := range cookies {
+							req2.Header.Set(k, v)
+						}
+						if resp2, err2 := client.Do(req2); err2 == nil {
+							resp2.Body.Close()
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -321,6 +348,36 @@ func listInbounds(ctx context.Context, client *http.Client, cookies map[string]s
 	}
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, err
+	}
+	return out.Obj, nil
+}
+
+func getInboundByID(ctx context.Context, client *http.Client, cookies map[string]string, id int) (map[string]any, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/panel/api/inbounds/get/%d", baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range cookies {
+		req.Header.Set(k, v)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("get inbound %d status %d: %s", id, resp.StatusCode, string(data))
+	}
+	var out struct {
+		Obj map[string]any `json:"obj"`
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	if out.Obj == nil {
+		return nil, fmt.Errorf("inbound %d not found in response", id)
 	}
 	return out.Obj, nil
 }
