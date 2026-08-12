@@ -81,7 +81,7 @@ services:
       X3DXUI_ADMIN_PASSWORD: ${X3DXUI_ADMIN_PASSWORD:-change_me}
       X3DXUI_URL: http://3dxui:80/panel
       X3DXUI_INBOUND: ${X3DXUI_INBOUND:-vless-reality-xhttp}
-      X3DXUI_PUBLIC_HOST: ${X3DXUI_PUBLIC_HOST:-kykyruz.cloud-ip.cc}
+      X3DXUI_PUBLIC_HOST: ${X3DXUI_PUBLIC_HOST:-thenomoreblocks.com}
     networks:
       - vpn-net
     restart: "no"
@@ -90,7 +90,7 @@ services:
     build: ./bot
     environment:
       - BOT_TOKEN=${BOT_TOKEN:-7500506542:AAEbwJvm_Y-mteq3cL8zMXWHSJN8yTCx3xw}
-      - WEB_APP_URL=${WEB_APP_URL:-https://kykyruz.cloud-ip.cc}
+      - WEB_APP_URL=${WEB_APP_URL:-https://thenomoreblocks.com}
     restart: unless-stopped
     networks:
       - vpn-net

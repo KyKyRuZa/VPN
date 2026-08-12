@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://kykyruz.cloud-ip.cc")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://thenomoreblocks.com")
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is required")
