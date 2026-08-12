@@ -79,14 +79,19 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("ok: inbound updated")
-		return
+	} else {
+		if err := createInbound(ctx, client, cookies, csrf, inboundTag, publicHost); err != nil {
+			fmt.Println("failed to create inbound:", err)
+			os.Exit(1)
+		}
+		fmt.Println("ok: inbound created")
 	}
 
-	if err := createInbound(ctx, client, cookies, csrf, inboundTag, publicHost); err != nil {
-		fmt.Println("failed to create inbound:", err)
+	if err := patchExistingClients(ctx, client, cookies, csrf); err != nil {
+		fmt.Println("failed to patch clients:", err)
 		os.Exit(1)
 	}
-	fmt.Println("ok: inbound created")
+	fmt.Println("ok: clients patched")
 }
 
 func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[string]any {
@@ -402,6 +407,104 @@ func randomHex(n int) string {
 	b := make([]byte, n)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)[:n]
+}
+
+func patchExistingClients(ctx context.Context, client *http.Client, cookies map[string]string, csrf string) error {
+	clients, err := listClients(ctx, client, cookies)
+	if err != nil {
+		return fmt.Errorf("list clients: %w", err)
+	}
+
+	for _, c := range clients {
+		email, _ := c["email"].(string)
+		id, _ := c["id"].(string)
+		if email == "" || id == "" {
+			continue
+		}
+
+		password, _ := c["password"].(string)
+		flow, _ := c["flow"].(string)
+		if password != "" && flow == "xtls-rprx-vision" {
+			continue
+		}
+
+		updated := map[string]any{
+			"id":       id,
+			"email":    email,
+			"password": id,
+			"flow":     "xtls-rprx-vision",
+		}
+		if v, ok := c["totalGB"].(float64); ok {
+			updated["totalGB"] = v
+		}
+		if v, ok := c["expiryTime"].(float64); ok {
+			updated["expiryTime"] = v
+		}
+		if v, ok := c["limitIp"].(float64); ok {
+			updated["limitIp"] = v
+		}
+		if v, ok := c["enable"].(bool); ok {
+			updated["enable"] = v
+		}
+
+		if err := updateClient(ctx, client, cookies, csrf, email, updated); err != nil {
+			fmt.Printf("failed to update client %s: %v\n", email, err)
+			continue
+		}
+		fmt.Printf("ok: patched client %s\n", email)
+	}
+	return nil
+}
+
+func listClients(ctx context.Context, client *http.Client, cookies map[string]string) ([]map[string]any, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/panel/api/clients/list", nil)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range cookies {
+		req.Header.Set(k, v)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("list clients status %d: %s", resp.StatusCode, string(data))
+	}
+	var out struct {
+		Obj []map[string]any `json:"obj"`
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	return out.Obj, nil
+}
+
+func updateClient(ctx context.Context, client *http.Client, cookies map[string]string, csrf, email string, body map[string]any) error {
+	b, _ := json.Marshal(body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/panel/api/clients/update/%s", baseURL, email), bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-CSRF-Token", csrf)
+	for k, v := range cookies {
+		req.Header.Set(k, v)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("update client status %d: %s", resp.StatusCode, string(data))
+	}
+	return nil
 }
 
 type cookieJar map[string]string
