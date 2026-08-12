@@ -523,5 +523,10 @@ func (s *X3dxuiService) UpdateXHTTPMode(ctx context.Context, mode string) error 
 
 	ib["id"] = inboundID
 	b, _ := json.Marshal(ib)
-	return s.do(ctx, http.MethodPost, fmt.Sprintf("/panel/api/inbounds/update/%d", inboundID), bytes.NewReader(b), nil)
+	if err := s.do(ctx, http.MethodPost, fmt.Sprintf("/panel/api/inbounds/update/%d", inboundID), bytes.NewReader(b), nil); err != nil {
+		return err
+	}
+
+	_ = s.do(ctx, http.MethodPost, s.baseURL+"/panel/api/server/restart", nil, nil)
+	return nil
 }
