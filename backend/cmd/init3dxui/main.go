@@ -105,7 +105,7 @@ func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[
 	}
 
 	xs := map[string]any{
-		"mode":               "packet-up",
+		"mode":               "auto",
 		"xPaddingBytes":      "100-1000",
 		"xPaddingObfsMode":   true,
 		"scMaxEachPostBytes": 1000000,
@@ -171,7 +171,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 
 		xhttpSettings := ss["xhttpSettings"]
 		if xs, ok := xhttpSettings.(map[string]any); ok {
-			xs["mode"] = "packet-up"
+			xs["mode"] = "auto"
 			xs["xPaddingBytes"] = "100-1000"
 			xs["xPaddingObfsMode"] = true
 			xs["scMaxEachPostBytes"] = 1000000
@@ -181,7 +181,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			}
 		} else {
 			xs := map[string]any{
-				"mode":               "packet-up",
+				"mode":               "auto",
 				"xPaddingBytes":      "100-1000",
 				"xPaddingObfsMode":   true,
 				"scMaxEachPostBytes": 1000000,

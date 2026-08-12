@@ -479,3 +479,36 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 
 	return string(configJSON), nil
 }
+
+// UpdateXHTTPMode updates the XHTTP mode for the managed inbound.
+func (s *X3dxuiService) UpdateXHTTPMode(ctx context.Context, mode string) error {
+	inboundID, err := s.getInboundID(ctx)
+	if err != nil {
+		return fmt.Errorf("getInboundID: %w", err)
+	}
+
+	ib, err := s.GetInboundConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	stream := ib["streamSettings"]
+	if ss, ok := stream.(map[string]any); ok {
+		xhttpSettings := ss["xhttpSettings"]
+		if xs, ok := xhttpSettings.(map[string]any); ok {
+			xs["mode"] = mode
+		} else {
+			ss["xhttpSettings"] = map[string]any{
+				"mode":               mode,
+				"xPaddingBytes":      "100-1000",
+				"xPaddingObfsMode":   true,
+				"scMaxEachPostBytes": 1000000,
+				"scMaxBufferedPosts": 30,
+			}
+		}
+	}
+
+	ib["id"] = inboundID
+	b, _ := json.Marshal(ib)
+	return s.do(ctx, http.MethodPost, fmt.Sprintf("/panel/api/inbounds/update/%d", inboundID), bytes.NewReader(b), nil)
+}
