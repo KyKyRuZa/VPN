@@ -91,10 +91,11 @@ func main() {
 
 func buildStreamSettings(publicHost, privateKey, publicKey, shortID string) map[string]any {
 	rs := map[string]any{
-		"dest":        "www.microsoft.com:443",
-		"serverNames": []string{"www.microsoft.com"},
-		"show":        false,
-		"settings":    map[string]any{},
+		"dest":                  "www.microsoft.com:443",
+		"serverNames":           []string{"www.microsoft.com"},
+		"show":                  false,
+		"settings":              map[string]any{},
+		"minimal_client_version": "",
 	}
 	if privateKey != "" && publicKey != "" {
 		rs["privateKey"] = privateKey
@@ -152,6 +153,7 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			rs["dest"] = "www.microsoft.com:443"
 			rs["serverNames"] = []string{"www.microsoft.com"}
 			rs["show"] = false
+			rs["minimal_client_version"] = ""
 		} else {
 			privateKey, publicKey, err := generateRealityKeys(ctx, client, cookies, csrf)
 			if err != nil {
@@ -159,13 +161,14 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 			}
 			shortID := randomHex(8)
 			ss["realitySettings"] = map[string]any{
-				"dest":        "www.microsoft.com:443",
-				"serverNames": []string{"www.microsoft.com"},
-				"show":        false,
-				"settings":    map[string]any{},
-				"privateKey":  privateKey,
-				"publicKey":   publicKey,
-				"shortIds":    []string{shortID},
+				"dest":                  "www.microsoft.com:443",
+				"serverNames":           []string{"www.microsoft.com"},
+				"show":                  false,
+				"settings":              map[string]any{},
+				"privateKey":            privateKey,
+				"publicKey":             publicKey,
+				"shortIds":              []string{shortID},
+				"minimal_client_version": "",
 			}
 		}
 

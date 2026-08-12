@@ -399,7 +399,7 @@ func (s *X3dxuiService) BuildVLESSConfig(ctx context.Context, username, uuid str
 	}
 
 	link := fmt.Sprintf(
-		"vless://%s@%s:%d?encryption=none&flow=xtls-rprx-vision&host=%s&mode=auto&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&fp=chrome&x_padding_bytes=100-1000#%s",
+		"vless://%s@%s:%d?encryption=none&host=%s&mode=auto&path=&pbk=%s&security=reality&sid=%s&sni=%s&spx=%s&type=xhttp&fp=chrome&x_padding_bytes=100-1000#%s",
 		uuid,
 		host,
 		port,
@@ -445,29 +445,37 @@ func (s *X3dxuiService) BuildSingBoxConfig(ctx context.Context, username, uuid s
 
 	config := map[string]any{
 		"version": 1,
+		"dns": map[string]any{
+			"servers": []map[string]any{
+				{
+					"tag":     "remote",
+					"address": "8.8.8.8",
+				},
+			},
+			"final": "remote",
+		},
 		"outbounds": []map[string]any{
 			{
-		"type":        "vless",
-		"server":      host,
-		"server_port": port,
-		"uuid":        uuid,
-		"flow":        "xtls-rprx-vision",
-		"transport": map[string]any{
-			"type": "xhttp",
-			"host": host,
-			"path": "/",
-			"mode": "auto",
-		},
-		"tls": map[string]any{
-			"enabled":     true,
-			"server_name": sni,
-			"fingerprint": "chrome",
-			"reality": map[string]any{
-				"public_key": publicKey,
-				"short_id":   shortID,
-			},
-		},
-		"password": uuid,
+				"type":        "vless",
+				"server":      host,
+				"server_port": port,
+				"uuid":        uuid,
+				"transport": map[string]any{
+					"type": "xhttp",
+					"host": host,
+					"path": "/",
+					"mode": "auto",
+				},
+				"tls": map[string]any{
+					"enabled":     true,
+					"server_name": sni,
+					"fingerprint": "chrome",
+					"reality": map[string]any{
+						"public_key": publicKey,
+						"short_id":   shortID,
+					},
+				},
+				"password": uuid,
 			},
 		},
 	}
@@ -505,6 +513,11 @@ func (s *X3dxuiService) UpdateXHTTPMode(ctx context.Context, mode string) error 
 				"scMaxEachPostBytes": 1000000,
 				"scMaxBufferedPosts": 30,
 			}
+		}
+
+		realitySettings := ss["realitySettings"]
+		if rs, ok := realitySettings.(map[string]any); ok {
+			rs["minimal_client_version"] = ""
 		}
 	}
 
