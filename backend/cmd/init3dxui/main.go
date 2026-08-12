@@ -214,6 +214,10 @@ func updateInboundSettings(ctx context.Context, client *http.Client, cookies map
 		"destOverride": []string{"http", "tls"},
 	}
 
+	if settings, ok := existingIB["settings"].(map[string]any); ok {
+		delete(settings, "flow")
+	}
+
 	b, _ := json.Marshal(existingIB)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/update/%d", baseURL, id), bytes.NewReader(b))
 	if err != nil {
