@@ -11,6 +11,7 @@ type User struct {
 	Email         string         `json:"email" db:"email"`
 	PasswordHash  string         `json:"-" db:"password_hash"`
 	IsActive      bool           `json:"is_active" db:"is_active"`
+	TelegramID    sql.NullInt64  `json:"-" db:"telegram_id"`
 	PanelUsername sql.NullString `json:"-" db:"panel_username"`
 	PanelUUID     sql.NullString `json:"-" db:"panel_uuid"`
 	CreatedAt     time.Time      `json:"created_at" db:"created_at"`

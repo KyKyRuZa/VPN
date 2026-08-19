@@ -75,3 +75,21 @@ func AdminRequired(secret string) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// BotRequired validates the bot shared secret from X-Bot-Secret header.
+// This protects the bot-facing API used by the Telegram bot to provision
+// users and deliver notifications.
+func BotRequired(secret string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if secret == "" {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "not configured"})
+			return
+		}
+		token := c.GetHeader("X-Bot-Secret")
+		if token == "" || token != secret {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid bot secret"})
+			return
+		}
+		c.Next()
+	}
+}

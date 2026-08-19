@@ -343,6 +343,26 @@ func (s *X3dxuiService) CreateUser(ctx context.Context, username string, expire 
 	return nil
 }
 
+// Client is a minimal view of a 3x-ui client used for notifications.
+type Client struct {
+	Email      string `json:"email"`
+	ID         string `json:"id"`
+	Enable     bool   `json:"enable"`
+	ExpiryTime int64  `json:"expiryTime"` // milliseconds since epoch (0 = never)
+	TotalGB    int64  `json:"totalGB"`
+}
+
+// ListClients returns all clients across inbounds.
+func (s *X3dxuiService) ListClients(ctx context.Context) ([]Client, error) {
+	var list struct {
+		Obj []Client `json:"obj"`
+	}
+	if err := s.do(ctx, http.MethodGet, "/panel/api/clients/list", nil, &list); err != nil {
+		return nil, err
+	}
+	return list.Obj, nil
+}
+
 // GetSubscriptionLink returns the user's subscription URL.
 func (s *X3dxuiService) GetSubscriptionLink(ctx context.Context, username string) (string, error) {
 	var clientOut struct {

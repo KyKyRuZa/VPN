@@ -10,20 +10,21 @@ import (
 )
 
 type Config struct {
-	AppEnv      string
-	Port        string
-	DatabaseURL string
-	RedisURL    string
-	JWTSecret   string
+	AppEnv         string
+	Port           string
+	DatabaseURL    string
+	RedisURL       string
+	JWTSecret      string
 	JWTPrivateKey  string
 	CORSDomain     string
-	X3dxuiURL         string
-	X3dxuiUser        string
-	X3dxuiPass        string
-	X3dxuiInbound     string
+	X3dxuiURL      string
+	X3dxuiUser     string
+	X3dxuiPass     string
+	X3dxuiInbound  string
 	PublicOrigin   string
-	BotToken      string
+	BotToken       string
 	AdminAPISecret string
+	BotAPISecret   string
 }
 
 func Load() (*Config, error) {
@@ -45,13 +46,14 @@ func Load() (*Config, error) {
 		RedisURL:       viper.GetString("redis_url"),
 		JWTSecret:      viper.GetString("jwt_secret"),
 		CORSDomain:     viper.GetString("cors_domain"),
-		X3dxuiURL:         viper.GetString("x3dxui_url"),
-		X3dxuiUser:        viper.GetString("x3dxui_admin_username"),
-		X3dxuiPass:        viper.GetString("x3dxui_admin_password"),
-		X3dxuiInbound:     viper.GetString("x3dxui_inbound"),
+		X3dxuiURL:      viper.GetString("x3dxui_url"),
+		X3dxuiUser:     viper.GetString("x3dxui_admin_username"),
+		X3dxuiPass:     viper.GetString("x3dxui_admin_password"),
+		X3dxuiInbound:  viper.GetString("x3dxui_inbound"),
 		PublicOrigin:   viper.GetString("public_origin"),
-		BotToken: viper.GetString("bot_token"),
+		BotToken:       viper.GetString("bot_token"),
 		AdminAPISecret: viper.GetString("admin_api_secret"),
+		BotAPISecret:   viper.GetString("bot_api_secret"),
 	}
 
 	if cfg.Port == "" {

@@ -12,10 +12,10 @@ import (
 
 // Handler holds dependencies shared by all HTTP handlers.
 type Handler struct {
-	store   *store.Store
-	jwt     *auth.TokenService
-	x3dxui     *services.X3dxuiService
-	cfg     *config.Config
+	store  *store.Store
+	jwt    *auth.TokenService
+	x3dxui *services.X3dxuiService
+	cfg    *config.Config
 }
 
 func NewHandler(s *store.Store, j *auth.TokenService, x *services.X3dxuiService, cfg *config.Config) *Handler {
@@ -31,14 +31,14 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 
 		auth := api.Group("/auth")
 		{
-		auth.POST("/register", h.register)
-		auth.POST("/login", h.login)
-		auth.POST("/refresh", h.refresh)
-		auth.POST("/logout", h.logout)
-		auth.POST("/telegram", h.telegram)
-		auth.GET("/profile", middleware.AuthRequired(h.jwt), h.profile)
-		auth.PATCH("/profile", middleware.AuthRequired(h.jwt), h.updateProfile)
-		auth.POST("/password", middleware.AuthRequired(h.jwt), h.changePassword)
+			auth.POST("/register", h.register)
+			auth.POST("/login", h.login)
+			auth.POST("/refresh", h.refresh)
+			auth.POST("/logout", h.logout)
+			auth.POST("/telegram", h.telegram)
+			auth.GET("/profile", middleware.AuthRequired(h.jwt), h.profile)
+			auth.PATCH("/profile", middleware.AuthRequired(h.jwt), h.updateProfile)
+			auth.POST("/password", middleware.AuthRequired(h.jwt), h.changePassword)
 		}
 
 		api.GET("/subscription", middleware.AuthRequired(h.jwt), h.subscription)
@@ -50,6 +50,14 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 		admin.Use(middleware.AdminRequired(h.cfg.AdminAPISecret))
 		{
 			admin.POST("/xhttp-mode", h.updateXHTTPMode)
+		}
+
+		bot := api.Group("/bot")
+		bot.Use(middleware.BotRequired(h.cfg.BotAPISecret))
+		{
+			bot.POST("/user", h.ensureBotUser)
+			bot.GET("/user/:id", h.getBotUser)
+			bot.GET("/notifications/expiring", h.expiringBotUsers)
 		}
 	}
 }

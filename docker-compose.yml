@@ -32,6 +32,13 @@ services:
     build: ./backend
     environment:
       - PORT=8080
+      - BOT_API_SECRET=${BOT_API_SECRET:-dev_bot_secret_changeme}
+      - X3DXUI_URL=${X3DXUI_URL:-http://3dxui:80/panel}
+      - X3DXUI_ADMIN_USERNAME=${X3DXUI_ADMIN_USERNAME:-admin}
+      - X3DXUI_ADMIN_PASSWORD=${X3DXUI_ADMIN_PASSWORD:-admin}
+      - X3DXUI_INBOUND=${X3DXUI_INBOUND:-vless-reality-xhttp}
+      - PUBLIC_ORIGIN=${PUBLIC_ORIGIN:-http://localhost}
+      - BOT_TOKEN=${BOT_TOKEN:-7500506542:AAEbwJvm_Y-mteq3cL8zMXWHSJN8yTCx3xw}
     env_file:
       - .env
     ports:
@@ -91,6 +98,12 @@ services:
     environment:
       - BOT_TOKEN=${BOT_TOKEN:-7500506542:AAEbwJvm_Y-mteq3cL8zMXWHSJN8yTCx3xw}
       - WEB_APP_URL=${WEB_APP_URL:-https://thenomoreblocks.com}
+      - BACKEND_URL=http://backend:8080
+      - BOT_API_SECRET=${BOT_API_SECRET:-dev_bot_secret_changeme}
+      - NOTIFY_INTERVAL=${NOTIFY_INTERVAL:-3600}
+    depends_on:
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - vpn-net

@@ -301,6 +301,10 @@ func (h *Handler) telegram(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
+		if err := h.store.SetTelegramID(ctx, user.ID, userID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
 		if err := h.store.SetPanelUsername(ctx, user.ID, username); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return

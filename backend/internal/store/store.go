@@ -54,14 +54,18 @@ func (s *Store) GetUserByID(ctx context.Context, id int64) (*models.User, error)
 	return s.scanUser(ctx, "WHERE id = $1", id)
 }
 
+func (s *Store) GetUserByTelegramID(ctx context.Context, telegramID int64) (*models.User, error) {
+	return s.scanUser(ctx, "WHERE telegram_id = $1", telegramID)
+}
+
 func (s *Store) scanUser(ctx context.Context, where string, arg any) (*models.User, error) {
 	const base = `
-SELECT id, username, email, password_hash, is_active, panel_username, panel_uuid, created_at
+SELECT id, username, email, password_hash, is_active, telegram_id, panel_username, panel_uuid, created_at
 	FROM users `
 
 	u := &models.User{}
 	err := s.db.QueryRowContext(ctx, base+where, arg).Scan(
-		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.PanelUsername, &u.PanelUUID, &u.CreatedAt,
+		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.IsActive, &u.TelegramID, &u.PanelUsername, &u.PanelUUID, &u.CreatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -80,6 +84,17 @@ func (s *Store) SetPanelUsername(ctx context.Context, userID int64, panelUsernam
 	return nil
 }
 
+func (s *Store) SetTelegramID(ctx context.Context, userID int64, telegramID int64) error {
+	_, err := s.db.ExecContext(ctx, "UPDATE users SET telegram_id = $1 WHERE id = $2", telegramID, userID)
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return ErrConflict
+		}
+		return fmt.Errorf("SetTelegramID db: %w", err)
+	}
+	return nil
+}
 func (s *Store) SetPanelUUID(ctx context.Context, userID int64, panelUUID string) error {
 	_, err := s.db.ExecContext(ctx, "UPDATE users SET panel_uuid = $1 WHERE id = $2", panelUUID, userID)
 	if err != nil {
